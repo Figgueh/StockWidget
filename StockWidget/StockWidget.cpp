@@ -3,6 +3,7 @@
 
 #include "framework.h"
 #include "StockWidget.h"
+#include "WinHttp.h"
 
 #define MAX_LOADSTRING 100
 
@@ -16,6 +17,7 @@ ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+void CreateControls(HWND hWnd);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -106,6 +108,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    }
 
    ShowWindow(hWnd, nCmdShow);
+   CreateControls(hWnd);
    UpdateWindow(hWnd);
 
    return TRUE;
@@ -177,4 +180,19 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
         break;
     }
     return (INT_PTR)FALSE;
+}
+
+void CreateControls(HWND hWnd)
+{
+    WinHttp connection;
+    connection.Open(L"StockWidget application/1.0");
+    connection.Connect(L"login.questrade.com");
+    connection.RequestHandler(L"GET", L"/oauth2/token?grant_type=refresh_token&refresh_token=nATO7i2m0TxG9xvTpXImdXdZ7kINlQQ60");
+    connection.SendRequest(L"Host: login.questrade.com", 26);
+    
+    //std::string ans = connection.RecieveResponse();
+    //std::wstring stemp = std::wstring(ans.begin(), ans.end());
+
+    HWND static_label = CreateWindowW(L"static", L"Hello", WS_VISIBLE | WS_CHILD | SS_CENTER, 100, 100, 250, 50, hWnd, NULL, NULL, NULL);
+    SetWindowText(static_label, connection.RecieveResponse().c_str());
 }

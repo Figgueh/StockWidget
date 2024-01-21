@@ -27,9 +27,15 @@
     <ClInclude Include="StockWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="WinHttp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StockWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="WinHttp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
