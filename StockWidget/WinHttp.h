@@ -3,6 +3,7 @@
 #include <winhttp.h>
 #include <string>
 
+
 class WinHttp
 {
 public:
@@ -12,7 +13,6 @@ public:
     void RequestHandler(LPCWSTR verb, LPCWSTR path);
     void SendRequest(LPCWSTR headers, int length);
     std::wstring RecieveResponse();
-    std::wstring ans;
 
 private:
     HINTERNET m_session = NULL;

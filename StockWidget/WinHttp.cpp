@@ -42,11 +42,13 @@ void WinHttp::SendRequest(LPCWSTR headers, int length)
         WinHttpReceiveResponse(m_request, NULL);
 }
 
+
 std::wstring WinHttp::RecieveResponse()
 {
     DWORD dwSize = 0;
     DWORD dwDownloaded = 0;
     LPSTR pszOutBuffer;
+    std::wstring ans;
 
     do
     {
