@@ -3,11 +3,11 @@
 
 #include "framework.h"
 #include "StockWidget.h"
-#include "WinHttp.h"
 #include "ConfigHandler.h"
 #include "json.hpp"
 #include "Authentication.h"
 #include "Toolbox.h"
+#include "RequestError.h"
 
 #define MAX_LOADSTRING 100
 
@@ -23,7 +23,6 @@ BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 void CreateControls(HWND& hWnd);
-void authenticate(std::wstring refreshToken);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -117,10 +116,28 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	ShowWindow(hWnd, nCmdShow);
 
 	CreateControls(hWnd);
-	authenticate(ConfigHandler::getRefreshToken());
 
+	Questrade::Authentication auth;
+	std::string refreshToken;
+
+	try {
+		auth = Questrade::Authentication::authenticate(ConfigHandler::getRefreshToken());
+
+		refreshToken = auth.getRefreshToken();
+		SetWindowText(static_label, toWString(refreshToken).c_str());
+	}
+	catch (RequestError& e) {
+		std::string error = std::string(e.what());
+		MessageBox(NULL, toWString(error).c_str(), L"bad request error", MB_ICONERROR | MB_OK);
+	}
+	catch (nlohmann::json::exception& e) {
+		ConfigHandler::updateRefreshToken(refreshToken);
+		std::string error = "ERROR:" + std::string(e.what());
+		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
+	}
+	
+	ConfigHandler::updateRefreshToken(refreshToken);
 	UpdateWindow(hWnd);
-
 
 	return TRUE;
 }
@@ -197,31 +214,4 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 void CreateControls(HWND& hWnd)
 {
 	static_label = CreateWindowW(L"static", L"Hello", WS_VISIBLE | WS_CHILD | SS_CENTER, 100, 100, 1500, 50, hWnd, NULL, NULL, NULL);
-}
-
-
-void authenticate(std::wstring refreshToken)
-{
-	WinHttp connection;
-	std::wstring path = L"/oauth2/token?grant_type=refresh_token&refresh_token=" + refreshToken;
-
-	connection.Open(L"StockWidget application/1.0");
-	connection.Connect(L"login.questrade.com");
-	connection.RequestHandler(L"GET", path.c_str());
-	connection.SendRequest(L"Host: login.questrade.com", 26);
-	std::wstring wResponse = connection.RecieveResponse();
-
-	nlohmann::json ans = nlohmann::json::parse(toString(wResponse));
-
-	try {
-		Questrade::Authentication auth = ans.template get<Questrade::Authentication>();
-		std::string refreshToken = auth.getRefreshToken();
-		SetWindowText(static_label, toWString(refreshToken).c_str());
-	}
-	catch (nlohmann::json::exception& e) {
-		std::string error = "ERROR:" + std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
-	}
-
-	ConfigHandler::updateRefreshToken(ans["refresh_token"]);
 }

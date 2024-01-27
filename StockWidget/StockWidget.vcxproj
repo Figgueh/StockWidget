@@ -133,6 +133,7 @@
     <ClInclude Include="framework.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Authentication.h" />
+    <ClInclude Include="RequestError.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="StockWidget.h" />
     <ClInclude Include="targetver.h" />
@@ -142,6 +143,7 @@
   <ItemGroup>
     <ClCompile Include="Authentication.cpp" />
     <ClCompile Include="ConfigHandler.cpp" />
+    <ClCompile Include="RequestError.cpp" />
     <ClCompile Include="StockWidget.cpp" />
     <ClCompile Include="Toolbox.cpp" />
     <ClCompile Include="WinHttp.cpp" />

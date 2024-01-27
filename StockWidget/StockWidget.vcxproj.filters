@@ -28,6 +28,12 @@
     <Filter Include="Header Files\nlohmann">
       <UniqueIdentifier>{37f56069-958a-49dc-b771-007b01db7440}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Network">
+      <UniqueIdentifier>{e3db7b47-02d5-43c8-ad6d-45fee89f6b4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Network">
+      <UniqueIdentifier>{b840d3b0-8e65-44a4-be10-2967bd2020fa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -42,9 +48,6 @@
     <ClInclude Include="StockWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="WinHttp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Authentication.h">
       <Filter>Header Files\Questrade</Filter>
     </ClInclude>
@@ -57,12 +60,15 @@
     <ClInclude Include="json.hpp">
       <Filter>Header Files\nlohmann</Filter>
     </ClInclude>
+    <ClInclude Include="WinHttp.h">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="RequestError.h">
+      <Filter>Header Files\Network</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StockWidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="WinHttp.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ConfigHandler.cpp">
@@ -73,6 +79,12 @@
     </ClCompile>
     <ClCompile Include="Authentication.cpp">
       <Filter>Source Files\Questrade</Filter>
+    </ClCompile>
+    <ClCompile Include="WinHttp.cpp">
+      <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="RequestError.cpp">
+      <Filter>Source Files\Network</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

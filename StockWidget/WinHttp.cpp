@@ -1,6 +1,9 @@
 #include <atlbase.h>
+#include <exception>
 
 #include "WinHttp.h"
+#include "RequestError.h"
+
 
 void WinHttp::Open(LPCWSTR userAgent)
 {
@@ -96,6 +99,10 @@ std::wstring WinHttp::RecieveResponse()
         }
     } while (dwSize > 0);
 
+    if (ans._Equal(L"Bad Request"))
+    {
+        throw RequestError();
+    }
     return ans;
 }
 

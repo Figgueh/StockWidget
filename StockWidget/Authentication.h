@@ -15,7 +15,8 @@ namespace Questrade
 		std::string apiServer;
 
 	public:
-		Authentication() = default;
+		Authentication();
+		static Authentication authenticate(std::wstring refreshToken);
 
 		std::string getRefreshToken();
 
