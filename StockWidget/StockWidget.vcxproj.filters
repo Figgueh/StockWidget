@@ -22,6 +22,12 @@
     <Filter Include="Header Files\FileManager">
       <UniqueIdentifier>{e0365f3b-0ad2-4744-9adf-6681f5756107}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\Questrade">
+      <UniqueIdentifier>{7355eef6-78bd-4463-bb39-fbe714b76f8c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\nlohmann">
+      <UniqueIdentifier>{37f56069-958a-49dc-b771-007b01db7440}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -45,11 +51,11 @@
     <ClInclude Include="ConfigHandler.h">
       <Filter>Header Files\FileManager</Filter>
     </ClInclude>
-    <ClInclude Include="json.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Toolbox.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="json.hpp">
+      <Filter>Header Files\nlohmann</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -62,11 +68,11 @@
     <ClCompile Include="ConfigHandler.cpp">
       <Filter>Source Files\FileManager</Filter>
     </ClCompile>
-    <ClCompile Include="Authentication.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Toolbox.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Authentication.cpp">
+      <Filter>Source Files\Questrade</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -2,8 +2,5 @@
 #include <string>
 
 std::wstring toWString(std::string& str);
-
-class Toolbox
-{
-};
+std::string toString(std::wstring& str);
 

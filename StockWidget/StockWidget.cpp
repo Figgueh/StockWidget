@@ -209,19 +209,18 @@ void authenticate(std::wstring refreshToken)
 	connection.Connect(L"login.questrade.com");
 	connection.RequestHandler(L"GET", path.c_str());
 	connection.SendRequest(L"Host: login.questrade.com", 26);
+	std::wstring wResponse = connection.RecieveResponse();
 
-	std::wstring got = connection.RecieveResponse();
-	std::string s(got.begin(), got.end());
-
-	nlohmann::json ans = nlohmann::json::parse(s);
+	nlohmann::json ans = nlohmann::json::parse(toString(wResponse));
 
 	try {
 		Questrade::Authentication auth = ans.template get<Questrade::Authentication>();
-		SetWindowText(static_label, auth.getRefreshToken().c_str());
+		std::string refreshToken = auth.getRefreshToken();
+		SetWindowText(static_label, toWString(refreshToken).c_str());
 	}
 	catch (nlohmann::json::exception& e) {
 		std::string error = "ERROR:" + std::string(e.what());
-		SetWindowText(static_label, toWString(error).c_str());
+		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
 	}
 
 	ConfigHandler::updateRefreshToken(ans["refresh_token"]);

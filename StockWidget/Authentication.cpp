@@ -1,11 +1,10 @@
 #include "Authentication.h"
 #include "Toolbox.h"
 
-
 namespace Questrade
 {
-	std::wstring Questrade::Authentication::getRefreshToken() {
-		return toWString(refreshToken);
+	std::string Questrade::Authentication::getRefreshToken() {
+		return refreshToken;
 	}
 
 	void Questrade::to_json(nlohmann::json& j, const Authentication& a) 

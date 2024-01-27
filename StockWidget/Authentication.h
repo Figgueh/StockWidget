@@ -17,7 +17,7 @@ namespace Questrade
 	public:
 		Authentication() = default;
 
-		std::wstring getRefreshToken();
+		std::string getRefreshToken();
 
 		friend void to_json(nlohmann::json& j, const Authentication& p);
 		friend void from_json(const nlohmann::json& j, Authentication& p);
