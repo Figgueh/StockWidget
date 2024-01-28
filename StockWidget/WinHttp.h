@@ -9,7 +9,7 @@ class WinHttp
 {
 public:
     ~WinHttp();
-    void open(LPCWSTR userAgent);
+    void open();
     void connect(LPCWSTR host);
     void requestHandler(LPCWSTR verb, LPCWSTR path);
     void addHeaders(std::map<std::string, std::string> headers);

@@ -15,7 +15,7 @@ std::wstring Questrade::RequestHandler::getQuote(int stockId)
 	headers.emplace("Host", auth.getApiServer());
 	headers.emplace("Authorization", auth.getTokenType() + " " + auth.getAccessToken());
 
-	connection.open(L"StockWidget application/1.0");
+	connection.open();
 	connection.connect(WinHttp::stripHost(auth.getApiServer()).c_str());
 	connection.requestHandler(L"GET", path.c_str());
 	connection.addHeaders(headers);

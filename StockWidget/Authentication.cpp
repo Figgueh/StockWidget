@@ -16,7 +16,7 @@ namespace Questrade
 		std::map<std::string, std::string> headers;
 		headers.emplace("Host", "login.questrade.com");
 
-		connection.open(L"StockWidget application/1.0");
+		connection.open();
 		connection.connect(L"login.questrade.com");
 		connection.requestHandler(L"GET", path.c_str());
 		connection.addHeaders(headers);
