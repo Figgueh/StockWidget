@@ -3,26 +3,22 @@
 
 #include "WinHttp.h"
 #include "RequestError.h"
+#include "toolbox.h"
 
-
-void WinHttp::Open(LPCWSTR userAgent)
+void WinHttp::open(LPCWSTR userAgent)
 {
-	//Convert string to wstring to pass a LPCWSTR
-	//std::wstring stemp = std::wstring(userAgent.begin(), userAgent.end());
 	m_session = WinHttpOpen(userAgent, WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
 }
 
-void WinHttp::Connect(LPCWSTR host)
+void WinHttp::connect(LPCWSTR host)
 {
 	if (m_session) 
 	{
-		//Convert string to wstring to pass a LPCWSTR
-		//std::wstring stemp = std::wstring(host.begin(), host.end());
 		m_connect = WinHttpConnect(m_session, host, INTERNET_DEFAULT_HTTPS_PORT, 0);
 	}
 }
 
-void WinHttp::RequestHandler(LPCWSTR verb, LPCWSTR path)
+void WinHttp::requestHandler(LPCWSTR verb, LPCWSTR path)
 {
 	if (m_connect) 
 	{
@@ -32,21 +28,31 @@ void WinHttp::RequestHandler(LPCWSTR verb, LPCWSTR path)
 	}
 }
 
-void WinHttp::SendRequest(LPCWSTR headers, int length)
+void WinHttp::addHeaders(std::map<std::string, std::string> headers)
 {
-    bool bResults;
+    for (auto const& [key, val] : headers)
+    {
+        //if (m_result)
+            m_result = WinHttpAddRequestHeaders(m_request,
+                toWString(key + ": " + val).c_str(),
+                (DWORD)-1,
+                WINHTTP_ADDREQ_FLAG_REPLACE | WINHTTP_ADDREQ_FLAG_ADD);
+    }
+}
+
+void WinHttp::sendRequest()
+{
 
 	if (m_request) 
 	{
-        bResults = WinHttpSendRequest(m_request, headers, length, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
+        m_result = WinHttpSendRequest(m_request, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
 	}
 
-    if(bResults)
+    if(m_result)
         WinHttpReceiveResponse(m_request, NULL);
 }
 
-
-std::wstring WinHttp::RecieveResponse()
+std::wstring WinHttp::recieveResponse()
 {
     DWORD dwSize = 0;
     DWORD dwDownloaded = 0;
@@ -104,6 +110,15 @@ std::wstring WinHttp::RecieveResponse()
         throw RequestError();
     }
     return ans;
+}
+
+std::wstring WinHttp::stripHost(const std::string& host)
+{
+    //Remove https://
+    std::string httpLess = host;
+    httpLess.erase(0, 8);
+    httpLess.erase(httpLess.end()-1, httpLess.end());
+    return toWString(httpLess);
 }
 
 WinHttp::~WinHttp()

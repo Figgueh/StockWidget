@@ -5,6 +5,7 @@
 
 namespace Questrade
 {
+
 	class Authentication
 	{
 	private:
@@ -18,7 +19,11 @@ namespace Questrade
 		Authentication();
 		static Authentication authenticate(std::wstring refreshToken);
 
-		std::string getRefreshToken();
+		std::string getTokenType() const;
+		std::string getAccessToken() const;
+		std::string getRefreshToken() const;
+		std::string getApiServer() const;
+
 
 		friend void to_json(nlohmann::json& j, const Authentication& p);
 		friend void from_json(const nlohmann::json& j, Authentication& p);

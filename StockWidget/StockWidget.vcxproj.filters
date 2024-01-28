@@ -66,6 +66,9 @@
     <ClInclude Include="RequestError.h">
       <Filter>Header Files\Network</Filter>
     </ClInclude>
+    <ClInclude Include="RequestHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="StockWidget.cpp">
@@ -85,6 +88,9 @@
     </ClCompile>
     <ClCompile Include="RequestError.cpp">
       <Filter>Source Files\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="RequestHandler.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

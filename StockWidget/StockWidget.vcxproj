@@ -134,6 +134,7 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Authentication.h" />
     <ClInclude Include="RequestError.h" />
+    <ClInclude Include="RequestHandler.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="StockWidget.h" />
     <ClInclude Include="targetver.h" />
@@ -144,6 +145,7 @@
     <ClCompile Include="Authentication.cpp" />
     <ClCompile Include="ConfigHandler.cpp" />
     <ClCompile Include="RequestError.cpp" />
+    <ClCompile Include="RequestHandler.cpp" />
     <ClCompile Include="StockWidget.cpp" />
     <ClCompile Include="Toolbox.cpp" />
     <ClCompile Include="WinHttp.cpp" />

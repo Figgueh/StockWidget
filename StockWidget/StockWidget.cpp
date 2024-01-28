@@ -8,6 +8,7 @@
 #include "Authentication.h"
 #include "Toolbox.h"
 #include "RequestError.h"
+#include "RequestHandler.h"
 
 #define MAX_LOADSTRING 100
 
@@ -137,6 +138,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	}
 	
 	ConfigHandler::updateRefreshToken(refreshToken);
+
+
+
+	//testing some market data
+	Questrade::RequestHandler marketData(auth);
+	
+	MessageBox(NULL, marketData.getQuote(3873).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
+
+
 	UpdateWindow(hWnd);
 
 	return TRUE;
