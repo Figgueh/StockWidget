@@ -21,13 +21,8 @@ namespace Questrade
 		double highPrice;
 		double lowPrice;
 		bool isHalted;
-		//std::string high52w;
-		//std::string low52w;
-		//std::string VWAP;
 
 		Quote() = default;
-
-
 	};
 
 	void from_json(const nlohmann::json& j, Quote& q);

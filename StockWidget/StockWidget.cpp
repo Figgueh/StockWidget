@@ -140,10 +140,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	ConfigHandler::updateRefreshToken(refreshToken);
 
 
-
-	//testing some market data
 	Questrade::RequestHandler marketData(auth);
-	Questrade::Quotes q1 = marketData.getQuote(3873);
+	Questrade::Quotes q1 = marketData.getQuote(8049);
 
 	std::string price = std::to_string(q1.quotes.back().bidPrice);
 

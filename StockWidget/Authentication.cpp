@@ -28,34 +28,34 @@ namespace Questrade
 	}
 
 	std::string Questrade::Authentication::getTokenType() const {
-		return tokenType;
+		return m_tokenType;
 	}
 	std::string Questrade::Authentication::getAccessToken() const {
-		return accessToken;
+		return m_accessToken;
 	}
 
 	std::string Questrade::Authentication::getRefreshToken() const {
-		return refreshToken;
+		return m_refreshToken;
 	}
 
 	std::string Questrade::Authentication::getApiServer() const {
-		return apiServer;
+		return m_apiServer;
 	}
 
 	void Questrade::to_json(nlohmann::json& j, const Authentication& a) 
 	{
-		j = nlohmann::json{ {"access_token", a.accessToken},
-			{"token_type", a.tokenType}, {"expires_in", a.expiresIn},
-		{"refresh_token", a.refreshToken}, {"api_server", a.apiServer} };
+		j = nlohmann::json{ {"access_token", a.m_accessToken},
+			{"token_type", a.m_tokenType}, {"expires_in", a.m_expiresIn},
+		{"refresh_token", a.m_refreshToken}, {"api_server", a.m_apiServer} };
 	}
 
 	void Questrade::from_json(const nlohmann::json& j, Authentication& a) 
 	{
-		j.at("access_token").get_to(a.accessToken);
-		j.at("token_type").get_to(a.tokenType);
-		j.at("expires_in").get_to(a.expiresIn);
-		j.at("refresh_token").get_to(a.refreshToken);
-		j.at("api_server").get_to(a.apiServer);
+		j.at("access_token").get_to(a.m_accessToken);
+		j.at("token_type").get_to(a.m_tokenType);
+		j.at("expires_in").get_to(a.m_expiresIn);
+		j.at("refresh_token").get_to(a.m_refreshToken);
+		j.at("api_server").get_to(a.m_apiServer);
 	}
 
 }
