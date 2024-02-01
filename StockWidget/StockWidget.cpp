@@ -143,8 +143,11 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	//testing some market data
 	Questrade::RequestHandler marketData(auth);
-	
-	MessageBox(NULL, marketData.getQuote(3873).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
+	Questrade::Quotes q1 = marketData.getQuote(3873);
+
+	std::string price = std::to_string(q1.quotes.back().bidPrice);
+
+	MessageBox(NULL, toWString(price).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
 
 
 	UpdateWindow(hWnd);
