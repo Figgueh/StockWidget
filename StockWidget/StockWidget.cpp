@@ -5,18 +5,19 @@
 #include "StockWidget.h"
 #include "ConfigHandler.h"
 #include "json.hpp"
-#include "Authentication.h"
 #include "Toolbox.h"
 #include "RequestError.h"
-#include "RequestHandler.h"
+#include "Search.h"
 
 #define MAX_LOADSTRING 100
+#define SEARCHBTN 20
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HWND static_label;
+
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -118,12 +119,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	CreateControls(hWnd);
 
-	Questrade::Authentication auth;
 	std::string refreshToken;
 
 	try {
 		auth = Questrade::Authentication::authenticate(ConfigHandler::getRefreshToken());
-
 		refreshToken = auth.getRefreshToken();
 		SetWindowText(static_label, toWString(refreshToken).c_str());
 	}
@@ -140,12 +139,14 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	ConfigHandler::updateRefreshToken(refreshToken);
 
 
-	Questrade::RequestHandler marketData(auth);
-	Questrade::Quotes q1 = marketData.getQuote(8049);
+	handle = Questrade::RequestHandler(auth);
+	Questrade::Quotes q1 = handle.getQuote(8049);
 
 	std::string price = std::to_string(q1.quotes.back().bidPrice);
 
-	MessageBox(NULL, toWString(price).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
+	//MessageBox(NULL, toWString(price).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
+
+	Questrade::Symbols s1 = handle.searchTicker("BMO");
 
 
 	UpdateWindow(hWnd);
@@ -179,6 +180,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
 			break;
+		case SEARCHBTN:
+			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -225,4 +228,16 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 void CreateControls(HWND& hWnd)
 {
 	static_label = CreateWindowW(L"static", L"Hello", WS_VISIBLE | WS_CHILD | SS_CENTER, 100, 100, 1500, 50, hWnd, NULL, NULL, NULL);
+	HWND searchButton = CreateWindow(
+		L"BUTTON",  // Predefined class; Unicode assumed 
+		L"Search",      // Button text 
+		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
+		10,         // x position 
+		10,         // y position 
+		100,        // Button width
+		100,        // Button height
+		hWnd,     // Parent window
+		(HMENU)SEARCHBTN,       // No menu.
+		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
+		NULL);      // Pointer not needed.
 }

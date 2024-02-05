@@ -34,6 +34,12 @@
     <Filter Include="Header Files\Network">
       <UniqueIdentifier>{b840d3b0-8e65-44a4-be10-2967bd2020fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\View">
+      <UniqueIdentifier>{f497b787-bcf3-445e-9fbd-8e573ab50e61}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\View">
+      <UniqueIdentifier>{8fc9122a-ac89-48d1-bb1d-06e9eb7baaa0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -43,9 +49,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="StockWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Authentication.h">
@@ -72,11 +75,17 @@
     <ClInclude Include="Quote.h">
       <Filter>Header Files\Questrade</Filter>
     </ClInclude>
+    <ClInclude Include="StockWidget.h">
+      <Filter>Header Files\View</Filter>
+    </ClInclude>
+    <ClInclude Include="Search.h">
+      <Filter>Header Files\View</Filter>
+    </ClInclude>
+    <ClInclude Include="Symbol.h">
+      <Filter>Header Files\Questrade</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="StockWidget.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ConfigHandler.cpp">
       <Filter>Source Files\FileManager</Filter>
     </ClCompile>
@@ -95,8 +104,17 @@
     <ClCompile Include="RequestHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="StockWidget.cpp">
+      <Filter>Source Files\View</Filter>
+    </ClCompile>
+    <ClCompile Include="Search.cpp">
+      <Filter>Source Files\View</Filter>
+    </ClCompile>
     <ClCompile Include="Quote.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Questrade</Filter>
+    </ClCompile>
+    <ClCompile Include="Symbol.cpp">
+      <Filter>Source Files\Questrade</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

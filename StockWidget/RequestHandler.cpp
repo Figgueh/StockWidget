@@ -3,7 +3,7 @@
 
 #include "Quote.h"
 
-Questrade::RequestHandler::RequestHandler(Authentication auth)
+Questrade::RequestHandler::RequestHandler(Authentication& auth)
 {
 	this->m_auth = auth;
 }
@@ -19,17 +19,14 @@ std::wstring Questrade::RequestHandler::handleRequest(std::wstring path, std::ma
 }
 
 Questrade::Quotes Questrade::RequestHandler::getQuote(int stockId)
-{
-	std::wstring path;
-	std::map<std::string, std::string> headers;
-		
-	path = toWString("/v1/markets/quotes/" + std::to_string(stockId));
+{		
+	m_path = toWString("/v1/markets/quotes/" + std::to_string(stockId));
 	
-	headers.emplace("Host", m_auth.getApiServer());
-	headers.emplace("Authorization", m_auth.getTokenType() + " " + m_auth.getAccessToken());
+	m_headers.emplace("Host", m_auth.getApiServer());
+	m_headers.emplace("Authorization", m_auth.getTokenType() + " " + m_auth.getAccessToken());
 
 	try {
-		std::wstring res = handleRequest(path, headers);
+		std::wstring res = handleRequest(m_path, m_headers);
 		nlohmann::json result = nlohmann::json::parse(toString(res));
 		return result.template get<Questrade::Quotes>();
 
@@ -38,6 +35,23 @@ Questrade::Quotes Questrade::RequestHandler::getQuote(int stockId)
 		std::string error = "ERROR:" + std::string(e.what());
 		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
 	}
+}
 
-	
+Questrade::Symbols Questrade::RequestHandler::searchTicker(std::string ticker)
+{
+	m_path = toWString("/v1/symbols/search?prefix=" + ticker);
+
+	m_headers.emplace("Host", m_auth.getApiServer());
+	m_headers.emplace("Authorization", m_auth.getTokenType() + " " + m_auth.getAccessToken());
+
+	try {
+		std::wstring res = handleRequest(m_path, m_headers);
+		nlohmann::json result = nlohmann::json::parse(toString(res));
+		return result.template get<Questrade::Symbols>();
+
+	}
+	catch (nlohmann::json::exception& e) {
+		std::string error = "ERROR:" + std::string(e.what());
+		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
+	}
 }
