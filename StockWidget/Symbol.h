@@ -13,6 +13,7 @@ namespace Questrade
 		std::string description;
 		bool isTradable;
 		bool isQuotable;
+		std::string securityType;
 
 	};
 

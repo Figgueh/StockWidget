@@ -119,6 +119,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	CreateControls(hWnd);
 
+	ConfigHandler configuration;
+	configuration.setupConfig();
+
 	std::string refreshToken;
 
 	try {
@@ -144,7 +147,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	std::string price = std::to_string(q1.quotes.back().bidPrice);
 
-	//MessageBox(NULL, toWString(price).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
 
 	Questrade::Symbols s1 = handle.searchTicker("BMO");
 
