@@ -27,6 +27,10 @@ Questrade::Quotes Questrade::RequestHandler::getQuote(int stockId)
 
 	try {
 		std::wstring res = handleRequest(m_path, m_headers);
+
+		if (res.compare(L"Bad Request") == 0)
+			throw Questrade::RequestError();
+
 		nlohmann::json result = nlohmann::json::parse(toString(res));
 		return result.template get<Questrade::Quotes>();
 
@@ -46,6 +50,10 @@ Questrade::Symbols Questrade::RequestHandler::searchTicker(std::string ticker)
 
 	try {
 		std::wstring res = handleRequest(m_path, m_headers);
+
+		if (res.compare(L"Bad Request") == 0)
+			throw Questrade::RequestError();
+
 		nlohmann::json result = nlohmann::json::parse(toString(res));
 		return result.template get<Questrade::Symbols>();
 
@@ -54,4 +62,21 @@ Questrade::Symbols Questrade::RequestHandler::searchTicker(std::string ticker)
 		std::string error = "ERROR:" + std::string(e.what());
 		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
 	}
+}
+
+Questrade::Symbol Questrade::RequestHandler::findStockSymbolWithQuote(const Questrade::Quote& quote, const int& id)
+{
+	Questrade::Symbols possibleTickers = searchTicker(quote.symbol);
+
+	for (Questrade::Symbol currentTicker : possibleTickers.symbols) {
+		if (currentTicker.symbolId == id)
+			return currentTicker;
+	}
+
+	return {};
+}
+
+const char* Questrade::RequestError::what() const throw()
+{
+	return "A mistake was made with the sent request";
 }

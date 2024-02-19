@@ -84,6 +84,9 @@
     <ClInclude Include="Symbol.h">
       <Filter>Header Files\Questrade</Filter>
     </ClInclude>
+    <ClInclude Include="RefreshToken.h">
+      <Filter>Header Files\View</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConfigHandler.cpp">
@@ -115,6 +118,9 @@
     </ClCompile>
     <ClCompile Include="Symbol.cpp">
       <Filter>Source Files\Questrade</Filter>
+    </ClCompile>
+    <ClCompile Include="RefreshToken.cpp">
+      <Filter>Source Files\View</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

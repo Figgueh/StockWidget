@@ -134,6 +134,7 @@
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Authentication.h" />
     <ClInclude Include="Quote.h" />
+    <ClInclude Include="RefreshToken.h" />
     <ClInclude Include="RequestError.h" />
     <ClInclude Include="RequestHandler.h" />
     <ClInclude Include="Resource.h" />
@@ -148,6 +149,7 @@
     <ClCompile Include="Authentication.cpp" />
     <ClCompile Include="ConfigHandler.cpp" />
     <ClCompile Include="Quote.cpp" />
+    <ClCompile Include="RefreshToken.cpp" />
     <ClCompile Include="RequestError.cpp" />
     <ClCompile Include="RequestHandler.cpp" />
     <ClCompile Include="Search.cpp" />

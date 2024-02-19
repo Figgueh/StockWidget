@@ -1,7 +1,8 @@
 #pragma once
 #include <string>
-#include "json.hpp"
+#include <exception>
 
+#include "json.hpp"
 
 namespace Questrade
 {
@@ -9,16 +10,17 @@ namespace Questrade
 	{
 	public:
 		Authentication();
-		static Authentication authenticate(std::wstring refreshToken);
+		static Authentication const authenticate(const std::wstring& refreshToken);
 
 		std::string getTokenType() const;
 		std::string getAccessToken() const;
 		std::string getRefreshToken() const;
 		std::string getApiServer() const;
 
-
 		friend void to_json(nlohmann::json& j, const Authentication& p);
 		friend void from_json(const nlohmann::json& j, Authentication& p);
+
+		static inline bool m_isAuthenticated = false;
 
 	private:
 		std::string m_tokenType;
@@ -27,6 +29,17 @@ namespace Questrade
 		std::string m_refreshToken;
 		std::string m_apiServer;
 	};
+
+
+	class AuthenticationError : public std::exception
+	{
+	public:
+		AuthenticationError() = default;
+		const char* what() const throw();
+	};
 }
+
+extern Questrade::Authentication auth;
+
 
 

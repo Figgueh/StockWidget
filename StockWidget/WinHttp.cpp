@@ -4,6 +4,7 @@
 #include "WinHttp.h"
 #include "RequestError.h"
 #include "toolbox.h"
+#include "Authentication.h"
 
 void WinHttp::open()
 {
@@ -22,8 +23,6 @@ void WinHttp::requestHandler(LPCWSTR verb, LPCWSTR path)
 {
 	if (m_connect) 
 	{
-		//std::wstring stempVerb = std::wstring(verb.begin(), verb.end());
-        //std::wstring stempPath = std::wstring(path.begin(), path.end());
         m_request = WinHttpOpenRequest(m_connect, verb, path, NULL, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
 	}
 }
@@ -48,7 +47,7 @@ void WinHttp::sendRequest()
         m_result = WinHttpSendRequest(m_request, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0);
 	}
 
-    if(m_result)
+    if (m_result)
         WinHttpReceiveResponse(m_request, NULL);
 }
 
@@ -105,10 +104,6 @@ std::wstring WinHttp::recieveResponse()
         }
     } while (dwSize > 0);
 
-    if (ans._Equal(L"Bad Request"))
-    {
-        throw RequestError();
-    }
     return ans;
 }
 

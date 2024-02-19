@@ -1,4 +1,5 @@
 #pragma once
+#include <exception>
 #include "Authentication.h"
 #include "WinHttp.h"
 #include "Quote.h"
@@ -14,12 +15,20 @@ namespace Questrade
 		std::wstring handleRequest(std::wstring path, std::map<std::string, std::string> headers);
 		Questrade::Quotes getQuote(int stockId);
 		Questrade::Symbols searchTicker(std::string ticker);
+		Questrade::Symbol findStockSymbolWithQuote(const Questrade::Quote& quote, const int& id);
 
 	private:
 		std::wstring m_path;
 		std::map<std::string, std::string> m_headers;
 		Authentication m_auth;
 		WinHttp m_connection;
+	};
+
+	class RequestError : public std::exception
+	{
+	public:
+		RequestError() = default;
+		const char* what() const throw();
 	};
 }
 

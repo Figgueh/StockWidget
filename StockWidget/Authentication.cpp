@@ -9,7 +9,7 @@ namespace Questrade
 	{
 	}
 
-	Questrade::Authentication Questrade::Authentication::authenticate(std::wstring refreshToken)
+	Questrade::Authentication const Questrade::Authentication::authenticate(const std::wstring& refreshToken)
 	{
 		WinHttp connection;
 		std::wstring path = L"/oauth2/token?grant_type=refresh_token&refresh_token=" + refreshToken;
@@ -22,6 +22,11 @@ namespace Questrade
 		connection.addHeaders(headers);
 		connection.sendRequest();
 		std::wstring wResponse = connection.recieveResponse();
+
+		if (wResponse.compare(L"Bad Request") != 0)
+			m_isAuthenticated = true;
+		else
+			throw AuthenticationError();
 
 		nlohmann::json ans = nlohmann::json::parse(toString(wResponse));
 		return ans.template get<Questrade::Authentication>();
@@ -56,6 +61,11 @@ namespace Questrade
 		j.at("expires_in").get_to(a.m_expiresIn);
 		j.at("refresh_token").get_to(a.m_refreshToken);
 		j.at("api_server").get_to(a.m_apiServer);
+	}
+
+	const char* AuthenticationError::what() const throw()
+	{
+		return "The provided refresh token is incorrect";
 	}
 
 }

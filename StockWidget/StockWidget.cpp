@@ -8,6 +8,7 @@
 #include "Toolbox.h"
 #include "RequestError.h"
 #include "Search.h"
+#include "RefreshToken.h"
 
 #define MAX_LOADSTRING 100
 #define SEARCHBTN 20
@@ -17,7 +18,7 @@ HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 HWND static_label;
-
+Questrade::Authentication auth;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -120,34 +121,33 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	CreateControls(hWnd);
 
 	ConfigHandler configuration;
-	configuration.setupConfig();
-
 	std::string refreshToken;
 
 	try {
-		auth = Questrade::Authentication::authenticate(ConfigHandler::getRefreshToken());
+		auth = Questrade::Authentication::authenticate(configuration.getRefreshToken());
 		refreshToken = auth.getRefreshToken();
+		configuration.updateRefreshToken(refreshToken);
 		SetWindowText(static_label, toWString(refreshToken).c_str());
+	}
+	catch (Questrade::AuthenticationError& e) {
+		std::string error = std::string(e.what());
+		MessageBox(NULL, toWString(error).c_str(), L"Authentication error", MB_ICONERROR | MB_OK);
+		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_REFRESHTOKEN), hWnd, WndRefreshProc, (LPARAM)&auth);
 	}
 	catch (RequestError& e) {
 		std::string error = std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"bad request error", MB_ICONERROR | MB_OK);
+		MessageBox(NULL, toWString(error).c_str(), L"Bad request error", MB_ICONERROR | MB_OK);
 	}
 	catch (nlohmann::json::exception& e) {
-		ConfigHandler::updateRefreshToken(refreshToken);
+		configuration.updateRefreshToken(refreshToken);
 		std::string error = "ERROR:" + std::string(e.what());
 		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
 	}
-	
-	ConfigHandler::updateRefreshToken(refreshToken);
 
 
 	handle = Questrade::RequestHandler(auth);
 	Questrade::Quotes q1 = handle.getQuote(8049);
-
 	std::string price = std::to_string(q1.quotes.back().bidPrice);
-
-
 	Questrade::Symbols s1 = handle.searchTicker("BMO");
 
 
