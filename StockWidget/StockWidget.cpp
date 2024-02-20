@@ -11,21 +11,19 @@
 #include "RefreshToken.h"
 
 #define MAX_LOADSTRING 100
-#define SEARCHBTN 20
 
 // Global Variables:
 HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-HWND static_label;
 Questrade::Authentication auth;
+std::vector<HWND> priceLables;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
-void CreateControls(HWND& hWnd);
+void createItem(HWND& hWnd, Questrade::Quotes quotes);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -108,17 +106,16 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	hInst = hInstance; // Store instance handle in our global variable
 
 	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, 0, 1700, 400, nullptr, nullptr, hInstance, nullptr);
+		CW_USEDEFAULT, 0, 500, 400, nullptr, nullptr, hInstance, nullptr);
 
 	if (!hWnd)
 	{
 		return FALSE;
 	}
 
-
 	ShowWindow(hWnd, nCmdShow);
-
-	CreateControls(hWnd);
+	RegisterHotKey(hWnd, HOTKEY_SETTINGS, MOD_ALT, 0x53); //s
+	RegisterHotKey(hWnd, HOTKEY_CLOSE, MOD_ALT, VK_ESCAPE); //esc
 
 	ConfigHandler configuration;
 	std::string refreshToken;
@@ -127,7 +124,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		auth = Questrade::Authentication::authenticate(configuration.getRefreshToken());
 		refreshToken = auth.getRefreshToken();
 		configuration.updateRefreshToken(refreshToken);
-		SetWindowText(static_label, toWString(refreshToken).c_str());
 	}
 	catch (Questrade::AuthenticationError& e) {
 		std::string error = std::string(e.what());
@@ -144,11 +140,17 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
 	}
 
-
 	handle = Questrade::RequestHandler(auth);
-	Questrade::Quotes q1 = handle.getQuote(8049);
-	std::string price = std::to_string(q1.quotes.back().bidPrice);
-	Questrade::Symbols s1 = handle.searchTicker("BMO");
+
+
+	// Get the list of ids thats in the watchlist
+	std::vector<int> watchlist = configuration.getTickers();
+
+	// Get their quotes
+	Questrade::Quotes watchlistQuotes = handle.getQuotes(watchlist);
+
+	createItem(hWnd, watchlistQuotes);
+
 
 
 	UpdateWindow(hWnd);
@@ -170,20 +172,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
+	case WM_HOTKEY:
+		switch (LOWORD(wParam)) {
+			case HOTKEY_SETTINGS:
+				DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
+				break;
+			case HOTKEY_CLOSE:
+				PostQuitMessage(0);
+				break;
+		}
+	break;
 	case WM_COMMAND:
 	{
 		int wmId = LOWORD(wParam);
 		// Parse the menu selections:
 		switch (wmId)
 		{
-		case IDM_ABOUT:
-			DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
-			break;
-		case IDM_EXIT:
-			DestroyWindow(hWnd);
-			break;
-		case SEARCHBTN:
-			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
 		default:
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
@@ -206,40 +210,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-// Message handler for about box.
-INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
+void createItem(HWND& hWnd, Questrade::Quotes quotes)
 {
-	UNREFERENCED_PARAMETER(lParam);
-	switch (message)
-	{
-	case WM_INITDIALOG:
-		return (INT_PTR)TRUE;
-
-	case WM_COMMAND:
-		if (LOWORD(wParam) == IDOK || LOWORD(wParam) == IDCANCEL)
-		{
-			EndDialog(hDlg, LOWORD(wParam));
-			return (INT_PTR)TRUE;
-		}
-		break;
+	int ypos = 0;
+	for (Questrade::Quote quote : quotes.quotes) {
+		// Create two lables, one with the ticker and other with the price
+		HWND ticker = CreateWindowW(L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, ypos, 100, 20, hWnd, NULL, NULL, NULL);
+		HWND price = CreateWindowW(L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, ypos, 100, 20, hWnd, NULL, NULL, NULL);
+		priceLables.push_back(price);
+		ypos += 20;
 	}
-	return (INT_PTR)FALSE;
-}
-
-
-void CreateControls(HWND& hWnd)
-{
-	static_label = CreateWindowW(L"static", L"Hello", WS_VISIBLE | WS_CHILD | SS_CENTER, 100, 100, 1500, 50, hWnd, NULL, NULL, NULL);
-	HWND searchButton = CreateWindow(
-		L"BUTTON",  // Predefined class; Unicode assumed 
-		L"Search",      // Button text 
-		WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON,  // Styles 
-		10,         // x position 
-		10,         // y position 
-		100,        // Button width
-		100,        // Button height
-		hWnd,     // Parent window
-		(HMENU)SEARCHBTN,       // No menu.
-		(HINSTANCE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE),
-		NULL);      // Pointer not needed.
 }

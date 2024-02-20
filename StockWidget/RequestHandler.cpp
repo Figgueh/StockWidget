@@ -41,6 +41,36 @@ Questrade::Quotes Questrade::RequestHandler::getQuote(int stockId)
 	}
 }
 
+Questrade::Quotes Questrade::RequestHandler::getQuotes(std::vector<int> stockIds)
+{
+	m_path = toWString("/v1/markets/quotes/?ids=");
+
+	for (int id : stockIds)
+	{
+		m_path.append(std::to_wstring(id) + L",");
+	}
+
+	m_path.erase(m_path.end() - 1, m_path.end());
+
+	m_headers.emplace("Host", m_auth.getApiServer());
+	m_headers.emplace("Authorization", m_auth.getTokenType() + " " + m_auth.getAccessToken());
+
+	try {
+		std::wstring res = handleRequest(m_path, m_headers);
+
+		if (res.compare(L"Bad Request") == 0)
+			throw Questrade::RequestError();
+
+		nlohmann::json result = nlohmann::json::parse(toString(res));
+		return result.template get<Questrade::Quotes>();
+
+	}
+	catch (nlohmann::json::exception& e) {
+		std::string error = "ERROR:" + std::string(e.what());
+		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
+	}
+}
+
 Questrade::Symbols Questrade::RequestHandler::searchTicker(std::string ticker)
 {
 	m_path = toWString("/v1/symbols/search?prefix=" + ticker);

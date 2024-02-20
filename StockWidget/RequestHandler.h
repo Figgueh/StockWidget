@@ -14,6 +14,7 @@ namespace Questrade
 		RequestHandler(Authentication& auth);
 		std::wstring handleRequest(std::wstring path, std::map<std::string, std::string> headers);
 		Questrade::Quotes getQuote(int stockId);
+		Questrade::Quotes getQuotes(std::vector<int> stockIds);
 		Questrade::Symbols searchTicker(std::string ticker);
 		Questrade::Symbol findStockSymbolWithQuote(const Questrade::Quote& quote, const int& id);
 
