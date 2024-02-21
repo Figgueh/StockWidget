@@ -17,13 +17,16 @@ HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 Questrade::Authentication auth;
-std::vector<HWND> priceLables;
+COLORREF backgroundColor = RGB( 255, 240, 255 );
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-void createItem(HWND& hWnd, Questrade::Quotes quotes);
+int createItem(HWND& hWnd, Questrade::Quotes quotes, std::vector<stockListing>* priceLabels);
+
+
+
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -83,7 +86,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 	wcex.hInstance = hInstance;
 	wcex.hIcon = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_STOCKWIDGET));
 	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
-	wcex.hbrBackground = CreateHatchBrush(HS_DIAGCROSS, RGB(255, 0, 0));
+	wcex.hbrBackground = CreateSolidBrush(backgroundColor);
 	wcex.lpszMenuName = MAKEINTRESOURCEW(IDC_STOCKWIDGET);
 	wcex.lpszClassName = szWindowClass;
 	wcex.hIconSm = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
@@ -105,8 +108,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	hInst = hInstance; // Store instance handle in our global variable
 
-	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, 0, 500, 400, nullptr, nullptr, hInstance, nullptr);
+	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_POPUP | WS_SYSMENU,
+		CW_USEDEFAULT, 0, 0, 0, nullptr, nullptr, hInstance, nullptr);
 
 	if (!hWnd)
 	{
@@ -114,6 +117,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	}
 
 	ShowWindow(hWnd, nCmdShow);
+
 	RegisterHotKey(hWnd, HOTKEY_SETTINGS, MOD_ALT, 0x53); //s
 	RegisterHotKey(hWnd, HOTKEY_CLOSE, MOD_ALT, VK_ESCAPE); //esc
 
@@ -148,12 +152,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	// Get their quotes
 	Questrade::Quotes watchlistQuotes = handle.getQuotes(watchlist);
+	std::vector<stockListing> priceLabels;
 
-	createItem(hWnd, watchlistQuotes);
+	int y = createItem(hWnd, watchlistQuotes, &priceLabels);
 
-
+	::SetWindowPos(hWnd, nullptr, 0, 0, 215, y, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOZORDER);
 
 	UpdateWindow(hWnd);
+
+	updateWatchlistPrice(watchlist, priceLabels);
 
 	return TRUE;
 }
@@ -172,6 +179,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	switch (message)
 	{
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hWnd, &ps);
+
+		// Makes the main window transparent
+		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+		SetLayeredWindowAttributes(hWnd, backgroundColor, 0, LWA_COLORKEY);
+
+		EndPaint(hWnd, &ps);
+	}
 	case WM_HOTKEY:
 		switch (LOWORD(wParam)) {
 			case HOTKEY_SETTINGS:
@@ -182,6 +200,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				break;
 		}
 	break;
+	case WM_CTLCOLORSTATIC:
+	{
+		HDC hdcStatic = (HDC)wParam;
+		SetTextColor((HDC)wParam, RGB(255, 255, 255));
+		SetBkMode(hdcStatic, TRANSPARENT);
+		return (LRESULT)GetStockObject(HOLLOW_BRUSH);
+	}
 	case WM_COMMAND:
 	{
 		int wmId = LOWORD(wParam);
@@ -193,31 +218,77 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	break;
-	case WM_PAINT:
-	{
-		PAINTSTRUCT ps;
-		HDC hdc = BeginPaint(hWnd, &ps);
-		// TODO: Add any drawing code that uses hdc here...
-		EndPaint(hWnd, &ps);
-	}
+	
 	break;
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+	break;
+	case WM_NCHITTEST: {
+		// Make the main window moveable just by clicking on it.
+		LRESULT hit = DefWindowProc(hWnd, message, wParam, lParam);
+		if (hit == HTCLIENT) {
+			hit = HTCAPTION;
+
+			if (GetAsyncKeyState(VK_LBUTTON)) {
+				SetLayeredWindowAttributes(hWnd, RGB(255, 255, 255), 150, LWA_ALPHA);
+				SetTextColor((HDC)wParam, RGB(0, 0, 0));
+
+			}
+			else {
+				SetLayeredWindowAttributes(hWnd, backgroundColor, 0, LWA_COLORKEY);
+			}
+		}
+
+		return hit;
+	}
+
+	case WM_SIZE:{
+		// Make rounded corners
+		RECT wRect;
+		if (::GetWindowRect(hWnd, &wRect)) {
+			HRGN hRgn = ::CreateRoundRectRgn(wRect.left, wRect.top, wRect.right, wRect.bottom, 30, 30);
+			::SetWindowRgn(hWnd, hRgn, TRUE);
+			::DeleteObject(hRgn);
+		}
+	}
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
 	return 0;
 }
 
-void createItem(HWND& hWnd, Questrade::Quotes quotes)
+
+
+int createItem(HWND& hWnd, Questrade::Quotes quotes, std::vector<stockListing>* outPriceLabels)
 {
 	int ypos = 0;
-	for (Questrade::Quote quote : quotes.quotes) {
+	for (Questrade::Quote& quote : quotes.quotes) {
 		// Create two lables, one with the ticker and other with the price
-		HWND ticker = CreateWindowW(L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, ypos, 100, 20, hWnd, NULL, NULL, NULL);
-		HWND price = CreateWindowW(L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, ypos, 100, 20, hWnd, NULL, NULL, NULL);
-		priceLables.push_back(price);
+		HWND ticker = CreateWindowW(L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, ypos, 100, 20, hWnd, nullptr, nullptr, nullptr);
+		HWND price = CreateWindowW(L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, ypos, 100, 20, hWnd, nullptr, nullptr, nullptr);
+		outPriceLabels->push_back(stockListing{ ticker, price });
 		ypos += 20;
+	}
+
+	return ypos;
+}
+
+void updateWatchlistPrice(std::vector<int>& const watchlist, std::vector<stockListing>& const priceLabels)
+{
+	Questrade::Quotes watchListQuotes = handle.getQuotes(watchlist);
+
+
+	for (Questrade::Quote& quote : watchListQuotes.quotes)
+	{
+		for (stockListing listing : priceLabels)
+		{
+			int length = GetWindowTextLength(listing.ticker);
+			wchar_t* ticker = new wchar_t[length + 1];
+			GetWindowText(listing.ticker, ticker, length+1);
+
+			if (ticker == toWString(quote.symbol))
+				SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
+		}
 	}
 }

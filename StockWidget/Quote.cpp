@@ -14,6 +14,9 @@ void Questrade::from_json(const nlohmann::json& j, Quote& q)
 	if (!j.at("askSize").is_null())
 		j.at("askSize").get_to(q.askSize);
 
+	if (!j.at("askPrice").is_null())
+		j.at("askPrice").get_to(q.askPrice);
+
 	if (!j.at("lastTradePriceTrHrs").is_null())
 		j.at("lastTradePriceTrHrs").get_to(q.lastTradePriceTrHrs);
 
