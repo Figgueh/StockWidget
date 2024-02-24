@@ -87,6 +87,9 @@
     <ClInclude Include="RefreshToken.h">
       <Filter>Header Files\View</Filter>
     </ClInclude>
+    <ClInclude Include="StockUpdater.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ConfigHandler.cpp">
@@ -121,6 +124,9 @@
     </ClCompile>
     <ClCompile Include="RefreshToken.cpp">
       <Filter>Source Files\View</Filter>
+    </ClCompile>
+    <ClCompile Include="StockUpdater.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

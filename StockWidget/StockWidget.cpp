@@ -17,10 +17,9 @@ HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 Questrade::Authentication auth;
-COLORREF backgroundColor = RGB( 255, 240, 255 );
+COLORREF backgroundColor = RGB(255, 240, 255);
 std::thread updater;
 std::vector<int> watchlistG;
-bool running = true;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -63,7 +62,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
-	running = false;
+	{
+		std::lock_guard<std::mutex> guard(mymutex);
+		running = false;
+	}
+	mycond.notify_all();
+	//running = false;
 	updater.join();
 
 	return (int)msg.wParam;
@@ -208,14 +212,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	break;
 	case WM_HOTKEY:
 		switch (LOWORD(wParam)) {
-			case HOTKEY_SETTINGS:
-				DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
-				break;
-			case HOTKEY_CLOSE:
-				PostQuitMessage(0);
-				break;
+		case HOTKEY_SETTINGS:
+			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
+			break;
+		case HOTKEY_CLOSE:
+			PostQuitMessage(0);
+			break;
 		}
-	break;
+		break;
 	case WM_CTLCOLORSTATIC:
 	{
 		HDC hdcStatic = (HDC)wParam;
@@ -236,9 +240,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 	break;
 	case WM_DESTROY:
-		
+
 		PostQuitMessage(0);
-	break;
+		break;
 	case WM_NCHITTEST: {
 		// Make the main window moveable just by clicking on it.
 		LRESULT hit = DefWindowProc(hWnd, message, wParam, lParam);
@@ -257,7 +261,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		return hit;
 	}
-	break;
+					 break;
 	case WM_SIZE: {
 		// Make rounded corners.
 		RECT wRect;
@@ -267,7 +271,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			::DeleteObject(hRgn);
 		}
 	}
-	break;
+				break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -294,22 +298,27 @@ void updateWatchlistPrice(std::vector<stockListing> priceLabels)
 {
 	while (running)
 	{
-	Questrade::Quotes watchListQuotes = handle.getQuotes(watchlistG);
+		Questrade::Quotes watchListQuotes = handle.getQuotes(watchlistG);
 
-	for (Questrade::Quote& quote : watchListQuotes.quotes)
-	{
-		for (stockListing& listing : priceLabels)
+		for (Questrade::Quote& quote : watchListQuotes.quotes)
 		{
-			int length = GetWindowTextLength(listing.ticker);
-			wchar_t* ticker = new wchar_t[length + 1];
-			GetWindowText(listing.ticker, ticker, length+1);
+			for (stockListing& listing : priceLabels)
+			{
+				int length = GetWindowTextLength(listing.ticker);
+				wchar_t* ticker = new wchar_t[length + 1];
+				GetWindowText(listing.ticker, ticker, length + 1);
 
-			if (ticker == toWString(quote.symbol))
-				SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
+				if (ticker == toWString(quote.symbol))
+					SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
+			}
+		}
+
+		OutputDebugStringW(L"Updated\n");
+		{
+			std::unique_lock<std::mutex> lock(mymutex);
+			mycond.wait_for(lock, std::chrono::seconds(10));
 		}
 	}
-	OutputDebugStringW(L"Updated\n");
-	std::this_thread::sleep_for(std::chrono::seconds(10));
-	}
+
 
 }
