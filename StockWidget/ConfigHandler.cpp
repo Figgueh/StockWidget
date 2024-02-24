@@ -58,7 +58,7 @@ std::vector<int> ConfigHandler::getTickers()
 	fileData.erase(fileData.begin(), fileData.begin() + 2);
 
 	for (std::wstring ticker : fileData) {
-		watchList.push_back(stoi(ticker));
+		watchList.emplace_back(stoi(ticker));
 	}
 
 	return watchList;
@@ -71,7 +71,7 @@ void ConfigHandler::updateTickers(std::vector<int> tickerIDs)
 	fileData.erase(fileData.begin() + 2, fileData.end());
 
 	for (int ticker : tickerIDs) {
-		fileData.push_back(std::to_wstring(ticker) + L"\n");
+		fileData.emplace_back(std::to_wstring(ticker) + L"\n");
 	}
 
 	writeConfig(fileData);
@@ -86,7 +86,7 @@ std::vector<std::wstring> ConfigHandler::readConfig()
 	fileHandle.open(FILENAME);
 	if (fileHandle.is_open()) {
 		while (std::getline(fileHandle, currentLine)) {
-			fileData.push_back(currentLine + L"\n");
+			fileData.emplace_back(currentLine + L"\n");
 		}
 	}
 	fileHandle.close();

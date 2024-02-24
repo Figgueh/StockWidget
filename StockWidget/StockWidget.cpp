@@ -18,15 +18,15 @@ WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 Questrade::Authentication auth;
 COLORREF backgroundColor = RGB( 255, 240, 255 );
+std::thread updater;
+std::vector<int> watchlistG;
+bool running = true;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 int createItem(HWND& hWnd, Questrade::Quotes quotes, std::vector<stockListing>* priceLabels);
-
-
-
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -62,6 +62,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 			DispatchMessage(&msg);
 		}
 	}
+
+	running = false;
+	updater.join();
 
 	return (int)msg.wParam;
 }
@@ -127,28 +130,40 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	try {
 		auth = Questrade::Authentication::authenticate(configuration.getRefreshToken());
 		refreshToken = auth.getRefreshToken();
-		configuration.updateRefreshToken(refreshToken);
+
 	}
 	catch (Questrade::AuthenticationError& e) {
 		std::string error = std::string(e.what());
 		MessageBox(NULL, toWString(error).c_str(), L"Authentication error", MB_ICONERROR | MB_OK);
 		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_REFRESHTOKEN), hWnd, WndRefreshProc, (LPARAM)&auth);
+		refreshToken = auth.getRefreshToken();
+
 	}
 	catch (RequestError& e) {
 		std::string error = std::string(e.what());
 		MessageBox(NULL, toWString(error).c_str(), L"Bad request error", MB_ICONERROR | MB_OK);
 	}
 	catch (nlohmann::json::exception& e) {
+		refreshToken = auth.getRefreshToken();
+
 		configuration.updateRefreshToken(refreshToken);
 		std::string error = "ERROR:" + std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
 	}
 
+	configuration.updateRefreshToken(refreshToken);
 	handle = Questrade::RequestHandler(auth);
 
 
 	// Get the list of ids thats in the watchlist
 	std::vector<int> watchlist = configuration.getTickers();
+	watchlistG = watchlist;
+
+	// If there isn't anything in the watchlist then open the dialog to allow them to update it
+	if (watchlist.empty()) {
+		MessageBox(NULL, L"The application couldn't find any stocks for the watchlist.", L"watchlist parse error", MB_ICONERROR | MB_OK);
+		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
+	}
+
 
 	// Get their quotes
 	Questrade::Quotes watchlistQuotes = handle.getQuotes(watchlist);
@@ -160,7 +175,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	UpdateWindow(hWnd);
 
-	updateWatchlistPrice(watchlist, priceLabels);
+	updater = std::thread(updateWatchlistPrice, std::move(priceLabels));
 
 	return TRUE;
 }
@@ -190,6 +205,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		EndPaint(hWnd, &ps);
 	}
+	break;
 	case WM_HOTKEY:
 		switch (LOWORD(wParam)) {
 			case HOTKEY_SETTINGS:
@@ -207,6 +223,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		SetBkMode(hdcStatic, TRANSPARENT);
 		return (LRESULT)GetStockObject(HOLLOW_BRUSH);
 	}
+	break;
 	case WM_COMMAND:
 	{
 		int wmId = LOWORD(wParam);
@@ -218,11 +235,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	break;
-	
-	break;
 	case WM_DESTROY:
+		
 		PostQuitMessage(0);
-		break;
 	break;
 	case WM_NCHITTEST: {
 		// Make the main window moveable just by clicking on it.
@@ -230,10 +245,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		if (hit == HTCLIENT) {
 			hit = HTCAPTION;
 
-			if (GetAsyncKeyState(VK_LBUTTON)) {
+			// Make background of main transparent and visible when moving it around.
+			if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
 				SetLayeredWindowAttributes(hWnd, RGB(255, 255, 255), 150, LWA_ALPHA);
 				SetTextColor((HDC)wParam, RGB(0, 0, 0));
-
 			}
 			else {
 				SetLayeredWindowAttributes(hWnd, backgroundColor, 0, LWA_COLORKEY);
@@ -242,9 +257,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		return hit;
 	}
-
-	case WM_SIZE:{
-		// Make rounded corners
+	break;
+	case WM_SIZE: {
+		// Make rounded corners.
 		RECT wRect;
 		if (::GetWindowRect(hWnd, &wRect)) {
 			HRGN hRgn = ::CreateRoundRectRgn(wRect.left, wRect.top, wRect.right, wRect.bottom, 30, 30);
@@ -252,6 +267,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			::DeleteObject(hRgn);
 		}
 	}
+	break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -260,28 +276,29 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 
-int createItem(HWND& hWnd, Questrade::Quotes quotes, std::vector<stockListing>* outPriceLabels)
+int createItem(HWND& hWnd, Questrade::Quotes quotes, std::vector<stockListing>* outStockListings)
 {
 	int ypos = 0;
 	for (Questrade::Quote& quote : quotes.quotes) {
 		// Create two lables, one with the ticker and other with the price
 		HWND ticker = CreateWindowW(L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, ypos, 100, 20, hWnd, nullptr, nullptr, nullptr);
 		HWND price = CreateWindowW(L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, ypos, 100, 20, hWnd, nullptr, nullptr, nullptr);
-		outPriceLabels->push_back(stockListing{ ticker, price });
+		outStockListings->emplace_back(stockListing{ ticker, price });
 		ypos += 20;
 	}
 
 	return ypos;
 }
 
-void updateWatchlistPrice(std::vector<int>& const watchlist, std::vector<stockListing>& const priceLabels)
+void updateWatchlistPrice(std::vector<stockListing> priceLabels)
 {
-	Questrade::Quotes watchListQuotes = handle.getQuotes(watchlist);
-
+	while (running)
+	{
+	Questrade::Quotes watchListQuotes = handle.getQuotes(watchlistG);
 
 	for (Questrade::Quote& quote : watchListQuotes.quotes)
 	{
-		for (stockListing listing : priceLabels)
+		for (stockListing& listing : priceLabels)
 		{
 			int length = GetWindowTextLength(listing.ticker);
 			wchar_t* ticker = new wchar_t[length + 1];
@@ -291,4 +308,8 @@ void updateWatchlistPrice(std::vector<int>& const watchlist, std::vector<stockLi
 				SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
 		}
 	}
+	OutputDebugStringW(L"Updated\n");
+	std::this_thread::sleep_for(std::chrono::seconds(10));
+	}
+
 }

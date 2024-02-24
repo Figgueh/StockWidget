@@ -23,7 +23,7 @@ namespace Questrade
 		connection.sendRequest();
 		std::wstring wResponse = connection.recieveResponse();
 
-		if (wResponse.compare(L"Bad Request") != 0)
+		if (wResponse.compare(L"Bad Request") != 0 && !wResponse.empty())
 			m_isAuthenticated = true;
 		else
 			throw AuthenticationError();

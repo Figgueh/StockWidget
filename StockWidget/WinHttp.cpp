@@ -8,7 +8,7 @@
 
 void WinHttp::open()
 {
-	m_session = WinHttpOpen(L"StockWidget application/1.0", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+	m_session = WinHttpOpen(L"StockWidget/1.0", WINHTTP_ACCESS_TYPE_AUTOMATIC_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
 }
 
 void WinHttp::connect(LPCWSTR host)
