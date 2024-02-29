@@ -179,7 +179,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	UpdateWindow(hWnd);
 
-	updater = std::thread(updateWatchlistPrice, std::move(priceLabels));
+	updater = std::thread(updateWatchlistPrice, std::ref(hWnd), std::move(priceLabels));
 
 	return TRUE;
 }
@@ -222,6 +222,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CTLCOLORSTATIC:
 	{
+		// Make the text transparent 
 		HDC hdcStatic = (HDC)wParam;
 		SetTextColor((HDC)wParam, RGB(255, 255, 255));
 		SetBkMode(hdcStatic, TRANSPARENT);
@@ -244,10 +245,17 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PostQuitMessage(0);
 		break;
 	case WM_NCHITTEST: {
+		
 		// Make the main window moveable just by clicking on it.
 		LRESULT hit = DefWindowProc(hWnd, message, wParam, lParam);
 		if (hit == HTCLIENT) {
 			hit = HTCAPTION;
+
+			// Start moving the window when ctrl is pressed.
+			if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
+				PostMessage(hWnd, WM_SYSCOMMAND, SC_SIZE + 9, 0);
+			}
+
 
 			// Make background of main transparent and visible when moving it around.
 			if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
@@ -294,7 +302,7 @@ int createItem(HWND& hWnd, Questrade::Quotes quotes, std::vector<stockListing>* 
 	return ypos;
 }
 
-void updateWatchlistPrice(std::vector<stockListing> priceLabels)
+void updateWatchlistPrice(HWND hwnd,  std::vector<stockListing> priceLabels)
 {
 	while (running)
 	{
@@ -308,8 +316,15 @@ void updateWatchlistPrice(std::vector<stockListing> priceLabels)
 				wchar_t* ticker = new wchar_t[length + 1];
 				GetWindowText(listing.ticker, ticker, length + 1);
 
-				if (ticker == toWString(quote.symbol))
+				if (ticker == toWString(quote.symbol)) {
+					// Fix to remove previous price since background wasn't visible.
+					RECT rect;
+					GetClientRect(listing.price, &rect);
+					MapWindowPoints(listing.price, hwnd, (POINT*)&rect, 2);
+					InvalidateRect(hwnd, &rect, TRUE);
+
 					SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
+				}
 			}
 		}
 
