@@ -10,6 +10,7 @@
 #include "Search.h"
 #include "RefreshToken.h"
 
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -62,12 +63,12 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
+	// Close the thread
 	{
 		std::lock_guard<std::mutex> guard(mymutex);
 		running = false;
 	}
 	mycond.notify_all();
-	//running = false;
 	updater.join();
 
 	return (int)msg.wParam;
@@ -255,7 +256,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (GetAsyncKeyState(VK_CONTROL) & 0x8000) {
 				PostMessage(hWnd, WM_SYSCOMMAND, SC_SIZE + 9, 0);
 			}
-
 
 			// Make background of main transparent and visible when moving it around.
 			if ((GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {

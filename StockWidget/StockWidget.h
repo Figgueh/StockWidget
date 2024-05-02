@@ -2,8 +2,10 @@
 #include "Authentication.h"
 #include "RequestHandler.h"
 #include "resource.h"
+#include <thread>
 
 #include <vector>
+#include <mutex>
 struct stockListing
 {
 	HWND ticker;
