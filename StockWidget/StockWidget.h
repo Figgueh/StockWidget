@@ -13,8 +13,10 @@ struct stockListing
 };
 
 Questrade::RequestHandler handle;
-//void updateWatchlistPrice(std::vector<int>& const watchlist, std::vector<stockListing>& const priceLabels);
-void updateWatchlistPrice(HWND hwnd, std::vector<stockListing> priceLabels);
+std::vector<int> watchlist;
+std::vector<stockListing> priceLabels;
+void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes);
+void startWatching(HWND hwnd);
 
 std::mutex mymutex;
 std::condition_variable mycond;

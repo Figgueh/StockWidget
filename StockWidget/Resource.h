@@ -12,7 +12,6 @@
 #define IDR_MAINFRAME                   128
 #define IDD_SEARCH                      129
 #define IDD_REFRESHTOKEN                130
-#define IDD_DIALOG1                     131
 #define IDD_SETTINGS                    131
 #define IDC_TICKER                      1000
 #define IDC_SEARCH                      1001
@@ -24,6 +23,7 @@
 #define HOTKEY_SETTINGS                 1007
 #define IDC_CHECK1                      1007
 #define HOTKEY_CLOSE                    1008
+#define IDC_REMOVE                      1009
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -33,7 +33,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1008
+#define _APS_NEXT_CONTROL_VALUE         1010
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

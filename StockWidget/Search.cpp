@@ -76,6 +76,15 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 			SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_SETITEMDATA, pos, i);
 
 			break;
+		case IDC_REMOVE:
+			// Get the selected index.
+			hwndList = GetDlgItem(hDlg, IDC_WATCHLIST);
+			lbItem = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
+
+			// Remove the item
+			SendMessage(hwndList, LB_DELETESTRING, lbItem, 0);
+
+			break;
 		case IDSAVE:
 			hwndWishList = GetDlgItem(hDlg, IDC_WATCHLIST);
 			items = (int)SendMessage(hwndWishList, LB_GETCOUNT, 0, 0);

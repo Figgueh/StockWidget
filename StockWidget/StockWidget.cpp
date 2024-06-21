@@ -20,13 +20,13 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 Questrade::Authentication auth;
 COLORREF backgroundColor = RGB(255, 240, 255);
 std::thread updater;
-std::vector<int> watchlistG;
+
+INT_PTR hwndSettings = NULL;  // Window handle of dialog box 
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
-int createItem(HWND& hWnd, Questrade::Quotes quotes, std::vector<stockListing>* priceLabels);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 	_In_opt_ HINSTANCE hPrevInstance,
@@ -160,8 +160,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 
 	// Get the list of ids thats in the watchlist
-	std::vector<int> watchlist = configuration.getTickers();
-	watchlistG = watchlist;
+	watchlist = configuration.getTickers();
 
 	// If there isn't anything in the watchlist then open the dialog to allow them to update it
 	if (watchlist.empty()) {
@@ -169,18 +168,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
 	}
 
+	if (priceLabels.empty())
+		initializeWatchlist(std::ref(hWnd), handle.getQuotes(watchlist));
 
-	// Get their quotes
-	Questrade::Quotes watchlistQuotes = handle.getQuotes(watchlist);
-	std::vector<stockListing> priceLabels;
+	// Start the updater thread
+	updater = std::thread(startWatching, std::ref(hWnd));
 
-	int y = createItem(hWnd, watchlistQuotes, &priceLabels);
-
-	::SetWindowPos(hWnd, nullptr, 0, 0, 215, y, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOZORDER);
-
-	UpdateWindow(hWnd);
-
-	updater = std::thread(updateWatchlistPrice, std::ref(hWnd), std::move(priceLabels));
+	// Update the length of the window
+	::SetWindowPos(hWnd, nullptr, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOZORDER);
+	UpdateWindow(hWnd);	
 
 	return TRUE;
 }
@@ -214,7 +210,31 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_HOTKEY:
 		switch (LOWORD(wParam)) {
 		case HOTKEY_SETTINGS:
-			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
+			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
+
+			if (hwndSettings == IDSAVE){
+				// Close the thread
+				{
+					std::lock_guard<std::mutex> guard(mymutex);
+					running = false;
+				}
+				mycond.notify_all();
+				updater.join();
+				OutputDebugStringW(L"Updater closed\n");
+
+				// Remove old labels
+				for (stockListing& listings : priceLabels) {
+					DestroyWindow(listings.ticker);
+					DestroyWindow(listings.price);
+				}
+
+				// Reinitialize
+				initializeWatchlist(hWnd, handle.getQuotes(watchlist));
+				updater = std::thread(startWatching, std::ref(hWnd));
+				UpdateWindow(hWnd);
+
+			}
+
 			break;
 		case HOTKEY_CLOSE:
 			PostQuitMessage(0);
@@ -269,7 +289,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		return hit;
 	}
-					 break;
 	case WM_SIZE: {
 		// Make rounded corners.
 		RECT wRect;
@@ -288,47 +307,59 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 
-int createItem(HWND& hWnd, Questrade::Quotes quotes, std::vector<stockListing>* outStockListings)
+void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes)
 {
-	int ypos = 0;
 	for (Questrade::Quote& quote : quotes.quotes) {
 		// Create two lables, one with the ticker and other with the price
-		HWND ticker = CreateWindowW(L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, ypos, 100, 20, hWnd, nullptr, nullptr, nullptr);
-		HWND price = CreateWindowW(L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, ypos, 100, 20, hWnd, nullptr, nullptr, nullptr);
-		outStockListings->emplace_back(stockListing{ ticker, price });
-		ypos += 20;
+		HWND ticker = CreateWindow(L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
+		HWND price = CreateWindow(L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
+		priceLabels.emplace_back(stockListing{ ticker, price });
 	}
-
-	return ypos;
+	UpdateWindow(hWnd);
 }
 
-void updateWatchlistPrice(HWND hwnd,  std::vector<stockListing> priceLabels)
+void startWatching(HWND hWnd)
 {
 	while (running)
 	{
-		Questrade::Quotes watchListQuotes = handle.getQuotes(watchlistG);
+		// Get their quotes
+		Questrade::Quotes watchlistQuotes = handle.getQuotes(watchlist);
 
-		for (Questrade::Quote& quote : watchListQuotes.quotes)
+		for (Questrade::Quote& quote : watchlistQuotes.quotes)
 		{
+
 			for (stockListing& listing : priceLabels)
 			{
+				// Get the text of the ticker
 				int length = GetWindowTextLength(listing.ticker);
 				wchar_t* ticker = new wchar_t[length + 1];
 				GetWindowText(listing.ticker, ticker, length + 1);
 
+				// If the stocks match, update the price
 				if (ticker == toWString(quote.symbol)) {
 					// Fix to remove previous price since background wasn't visible.
 					RECT rect;
 					GetClientRect(listing.price, &rect);
-					MapWindowPoints(listing.price, hwnd, (POINT*)&rect, 2);
-					InvalidateRect(hwnd, &rect, TRUE);
+					MapWindowPoints(listing.price, hWnd, (POINT*)&rect, 2);
+					InvalidateRect(hWnd, &rect, TRUE);
 
-					SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
+					// Check if markets are closed
+					if (quote.askPrice != 0.000000) {
+						// Set the new price
+						SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
+					}
+					else{
+						// Show the last traded price
+						std::string text = std::to_string(quote.lastTradePrice) + "*";
+						SetWindowTextA(listing.price, text.c_str());
+
+					}
 				}
 			}
 		}
-
 		OutputDebugStringW(L"Updated\n");
+		UpdateWindow(hWnd);
+
 		{
 			std::unique_lock<std::mutex> lock(mymutex);
 			mycond.wait_for(lock, std::chrono::seconds(10));
