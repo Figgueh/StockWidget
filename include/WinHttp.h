@@ -1,9 +1,9 @@
 #pragma once
 #include <windows.h>
-#pragma comment(lib, "winhttp")
 #include <winhttp.h>
 #include <string>
 #include <map>
+
 
 class WinHttp
 {

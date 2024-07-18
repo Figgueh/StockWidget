@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 
-#include "json.hpp"
+#include "utility/json.hpp"
 
 namespace Questrade
 {

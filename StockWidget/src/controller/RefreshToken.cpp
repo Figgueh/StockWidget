@@ -1,6 +1,6 @@
-#include "RefreshToken.h"
-#include "ConfigHandler.h"
-#include "Toolbox.h"
+#include "controller/RefreshToken.h"
+#include "model/ConfigHandler.h"
+#include "utility/Toolbox.h"
 
 
 //

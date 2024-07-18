@@ -105,11 +105,13 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>src;include</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>WinHttp.lib;$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -129,35 +131,33 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="ConfigHandler.h" />
-    <ClInclude Include="framework.h" />
-    <ClInclude Include="json.hpp" />
-    <ClInclude Include="Authentication.h" />
-    <ClInclude Include="Quote.h" />
-    <ClInclude Include="RefreshToken.h" />
-    <ClInclude Include="RequestError.h" />
-    <ClInclude Include="RequestHandler.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="Search.h" />
-    <ClInclude Include="StockUpdater.h" />
-    <ClInclude Include="StockWidget.h" />
-    <ClInclude Include="Symbol.h" />
-    <ClInclude Include="targetver.h" />
-    <ClInclude Include="Toolbox.h" />
+    <ClInclude Include="include\model\ConfigHandler.h" />
+    <ClInclude Include="include\api\framework.h" />
+    <ClInclude Include="include\utility\json.hpp" />
+    <ClInclude Include="include\model\Authentication.h" />
+    <ClInclude Include="include\questrade\Quote.h" />
+    <ClInclude Include="include\controller\RefreshToken.h" />
+    <ClInclude Include="include\utility\RequestError.h" />
+    <ClInclude Include="include\model\RequestHandler.h" />
+    <ClInclude Include="include\api\Resource.h" />
+    <ClInclude Include="include\controller\Search.h" />
+    <ClInclude Include="include\controller\StockWidget.h" />
+    <ClInclude Include="include\questrade\Symbol.h" />
+    <ClInclude Include="include\api\targetver.h" />
+    <ClInclude Include="include\utility\Toolbox.h" />
     <ClInclude Include="WinHttp.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Authentication.cpp" />
-    <ClCompile Include="ConfigHandler.cpp" />
-    <ClCompile Include="Quote.cpp" />
-    <ClCompile Include="RefreshToken.cpp" />
-    <ClCompile Include="RequestError.cpp" />
-    <ClCompile Include="RequestHandler.cpp" />
-    <ClCompile Include="Search.cpp" />
-    <ClCompile Include="StockUpdater.cpp" />
-    <ClCompile Include="StockWidget.cpp" />
-    <ClCompile Include="Symbol.cpp" />
-    <ClCompile Include="Toolbox.cpp" />
+    <ClCompile Include="src\model\Authentication.cpp" />
+    <ClCompile Include="src\model\ConfigHandler.cpp" />
+    <ClCompile Include="src\questrade\Quote.cpp" />
+    <ClCompile Include="src\controller\RefreshToken.cpp" />
+    <ClCompile Include="src\utility\RequestError.cpp" />
+    <ClCompile Include="src\model\RequestHandler.cpp" />
+    <ClCompile Include="src\controller\Search.cpp" />
+    <ClCompile Include="src\controller\StockWidget.cpp" />
+    <ClCompile Include="src\questrade\Symbol.cpp" />
+    <ClCompile Include="src\utility\Toolbox.cpp" />
     <ClCompile Include="WinHttp.cpp" />
   </ItemGroup>
   <ItemGroup>

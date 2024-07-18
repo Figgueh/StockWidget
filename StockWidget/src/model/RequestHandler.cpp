@@ -1,7 +1,6 @@
-#include "RequestHandler.h"
-#include "Toolbox.h"
-
-#include "Quote.h"
+#include "model/RequestHandler.h"
+#include "utility/Toolbox.h"
+#include "questrade/Quote.h"
 
 Questrade::RequestHandler::RequestHandler(Authentication& auth)
 {

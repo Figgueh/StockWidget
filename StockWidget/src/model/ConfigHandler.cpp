@@ -1,5 +1,5 @@
-#include "ConfigHandler.h"
-#include "Toolbox.h"
+#include "model/ConfigHandler.h"
+#include "utility/Toolbox.h"
 
 std::wstring stripToken(std::wstring currentLine)
 {

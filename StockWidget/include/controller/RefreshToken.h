@@ -1,7 +1,7 @@
 #pragma once
-#include "resource.h"
-#include "framework.h"
-#include "Authentication.h"
+#include "api/resource.h"
+#include "api/framework.h"
+#include "model/Authentication.h"
 
 
 INT_PTR CALLBACK WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);

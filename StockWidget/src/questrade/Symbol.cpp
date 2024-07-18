@@ -1,4 +1,4 @@
-#include "Symbol.h"
+#include "questrade/Symbol.h"
 
 void Questrade::from_json(const nlohmann::json& j, Symbol& s)
 {

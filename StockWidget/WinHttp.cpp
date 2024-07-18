@@ -2,9 +2,9 @@
 #include <exception>
 
 #include "WinHttp.h"
-#include "RequestError.h"
-#include "toolbox.h"
-#include "Authentication.h"
+#include "utility/RequestError.h"
+#include "utility/toolbox.h"
+#include "model/Authentication.h"
 
 void WinHttp::open()
 {

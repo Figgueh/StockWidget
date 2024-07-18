@@ -1,9 +1,9 @@
 #pragma once
 #include <exception>
 #include "Authentication.h"
-#include "WinHttp.h"
-#include "Quote.h"
-#include "Symbol.h"
+#include "../WinHttp.h"
+#include "questrade/Quote.h"
+#include "questrade/Symbol.h"
 
 namespace Questrade
 {

@@ -1,14 +1,14 @@
 // StockWidget.cpp : Defines the entry point for the application.
 //
 
-#include "framework.h"
-#include "StockWidget.h"
-#include "ConfigHandler.h"
-#include "json.hpp"
-#include "Toolbox.h"
-#include "RequestError.h"
-#include "Search.h"
-#include "RefreshToken.h"
+#include "api/framework.h"
+#include "controller/StockWidget.h"
+#include "model/ConfigHandler.h"
+#include "utility/json.hpp"
+#include "utility/Toolbox.h"
+#include "utility/RequestError.h"
+#include "controller/Search.h"
+#include "controller/RefreshToken.h"
 
 
 #define MAX_LOADSTRING 100
