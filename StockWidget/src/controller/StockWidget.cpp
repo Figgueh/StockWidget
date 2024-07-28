@@ -3,7 +3,6 @@
 
 #include "api/framework.h"
 #include "controller/StockWidget.h"
-#include "model/ConfigHandler.h"
 #include "utility/json.hpp"
 #include "utility/Toolbox.h"
 #include "utility/RequestError.h"
@@ -22,11 +21,6 @@ COLORREF backgroundColor = RGB(255, 240, 255);
 std::thread updater;
 
 INT_PTR hwndSettings = NULL;  // Window handle of dialog box 
-
-	ConfigHandler conf;
-	WINDOWPLACEMENT pl = conf.getPosition();
-	WINDOWPLACEMENT* pltr = &pl;
-
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -129,8 +123,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		return FALSE;
 	}
 	
-	ConfigHandler configuration;
-
 	ShowWindow(hWnd, nCmdShow);
 
 	RegisterHotKey(hWnd, HOTKEY_SETTINGS, MOD_ALT, 0x53); //s
@@ -205,10 +197,6 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	ConfigHandler config;
-	WINDOWPLACEMENT local;
-	local.length = sizeof(WINDOWPLACEMENT);
-
 	switch (message)
 	{
 	case WM_PAINT:
@@ -280,8 +268,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 	case WM_DESTROY:
 	case WM_QUIT:
+
+		// Get the positon of the window
+		WINDOWPLACEMENT local;
 		GetWindowPlacement(hWnd, &local);
-		config.updatePosition(local);
+
+		// Save it
+		configuration.updatePosition(local);
+
 		PostQuitMessage(0);
 		break;
 
@@ -382,7 +376,7 @@ void startWatching(HWND hWnd)
 
 		{
 			std::unique_lock<std::mutex> lock(mymutex);
-			mycond.wait_for(lock, std::chrono::seconds(10));
+			mycond.wait_for(lock, std::chrono::seconds(100));
 		}
 	}
 

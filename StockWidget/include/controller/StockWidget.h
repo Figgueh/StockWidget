@@ -5,6 +5,7 @@
 
 #include "model/Authentication.h"
 #include "model/RequestHandler.h"
+#include "model/ConfigHandler.h"
 #include "api/resource.h"
 
 struct stockListing
@@ -19,6 +20,8 @@ std::vector<stockListing> priceLabels;
 void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes);
 void startWatching(HWND hwnd);
 
+
+ConfigHandler configuration;
 std::mutex mymutex;
 std::condition_variable mycond;
 bool running = true;
