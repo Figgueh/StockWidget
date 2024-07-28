@@ -50,13 +50,56 @@ void ConfigHandler::updateRefreshToken(std::string token)
 	writeConfig(fileData);
 }
 
+WINDOWPLACEMENT ConfigHandler::getPosition()
+{
+	std::vector<std::wstring> fileData = readConfig();
+
+	// Get the position of where the coordinates are
+	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Position:\n") - fileData.begin() + 1);
+
+	std::wstring positioning = fileData[pos];
+	std::vector<std::wstring> coords = split(positioning, ",");
+
+	WINDOWPLACEMENT windowPos;
+	windowPos.length = sizeof(windowPos);
+	windowPos.flags = 0;
+	windowPos.showCmd = 1;
+	windowPos.ptMinPosition = POINT(-1, -1);
+	windowPos.ptMaxPosition = POINT(-1, -1);
+
+	RECT window = RECT(stol(coords[0]), stol(coords[1]), stol(coords[2]), stol(coords[3]));
+	windowPos.rcNormalPosition = window;
+	return windowPos;
+	
+}
+
+void ConfigHandler::updatePosition(WINDOWPLACEMENT& pos)
+{
+	std::vector<std::wstring> fileData = readConfig();
+
+	// Get the position of where the coordinates are
+	ptrdiff_t index = (std::find(fileData.begin(), fileData.end(), L"Position:\n") - fileData.begin() + 1);
+
+	RECT window = pos.rcNormalPosition;
+	std::wstring positioning =	std::to_wstring(window.left) + L"," + 
+								std::to_wstring(window.top) + L","  +
+								std::to_wstring(window.right) + L"," + 
+								std::to_wstring(window.bottom) + L"\n";
+
+	fileData[index] = positioning;
+	writeConfig(fileData);
+}
+
 std::vector<int> ConfigHandler::getTickers()
 {
 	std::vector<int> watchList;
 	std::vector<std::wstring> fileData = readConfig();
 
-	fileData.erase(fileData.begin(), fileData.begin() + 2);
+	// Get the position of where it lists the watchlist
+	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Watchlist:\n") - fileData.begin() + 1);
+	fileData.erase(fileData.begin(), fileData.begin() + pos);
 
+	// Read untill EOF
 	for (std::wstring ticker : fileData) {
 		watchList.emplace_back(stoi(ticker));
 	}
@@ -68,8 +111,11 @@ void ConfigHandler::updateTickers(std::vector<int> tickerIDs)
 {
 	std::vector<std::wstring> fileData = readConfig();
 
-	fileData.erase(fileData.begin() + 2, fileData.end());
+	// Get the position of where is lists the watchlist
+	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Watchlist:\n") - fileData.begin() + 1);
+	fileData.erase(fileData.begin() + pos, fileData.end());
 
+	// Replace untill EOF with new tickers
 	for (int ticker : tickerIDs) {
 		fileData.emplace_back(std::to_wstring(ticker) + L"\n");
 	}

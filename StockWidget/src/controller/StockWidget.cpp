@@ -23,6 +23,11 @@ std::thread updater;
 
 INT_PTR hwndSettings = NULL;  // Window handle of dialog box 
 
+	ConfigHandler conf;
+	WINDOWPLACEMENT pl = conf.getPosition();
+	WINDOWPLACEMENT* pltr = &pl;
+
+
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -117,19 +122,20 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	hInst = hInstance; // Store instance handle in our global variable
 
 	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_POPUP | WS_SYSMENU,
-		CW_USEDEFAULT, 0, 0, 0, nullptr, nullptr, hInstance, nullptr);
+		0, 0, 0, 0, nullptr, nullptr, hInstance, nullptr);
 
 	if (!hWnd)
 	{
 		return FALSE;
 	}
+	
+	ConfigHandler configuration;
 
 	ShowWindow(hWnd, nCmdShow);
 
 	RegisterHotKey(hWnd, HOTKEY_SETTINGS, MOD_ALT, 0x53); //s
 	RegisterHotKey(hWnd, HOTKEY_CLOSE, MOD_ALT, VK_ESCAPE); //esc
 
-	ConfigHandler configuration;
 	std::string refreshToken;
 
 	try {
@@ -168,15 +174,21 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
 	}
 
+    // Update the length of the window
+	::SetWindowPos(hWnd, HWND_TOPMOST, 0 ,0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
+
+	// Load the previously saved location of the window
+	WINDOWPLACEMENT placement = configuration.getPosition();
+	SetWindowPlacement(hWnd, &placement);
+
+	// Apply size changes
+	UpdateWindow(hWnd);
+
 	if (priceLabels.empty())
 		initializeWatchlist(std::ref(hWnd), handle.getQuotes(watchlist));
 
 	// Start the updater thread
 	updater = std::thread(startWatching, std::ref(hWnd));
-
-	// Update the length of the window
-	::SetWindowPos(hWnd, nullptr, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOMOVE | SWP_NOZORDER);
-	UpdateWindow(hWnd);	
 
 	return TRUE;
 }
@@ -193,6 +205,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
+	ConfigHandler config;
+	WINDOWPLACEMENT local;
+	local.length = sizeof(WINDOWPLACEMENT);
+
 	switch (message)
 	{
 	case WM_PAINT:
@@ -261,10 +277,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 	}
 	break;
+	case WM_CLOSE:
 	case WM_DESTROY:
-
+	case WM_QUIT:
+		GetWindowPlacement(hWnd, &local);
+		config.updatePosition(local);
 		PostQuitMessage(0);
 		break;
+
 	case WM_NCHITTEST: {
 		
 		// Make the main window moveable just by clicking on it.
@@ -311,8 +331,8 @@ void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes)
 {
 	for (Questrade::Quote& quote : quotes.quotes) {
 		// Create two lables, one with the ticker and other with the price
-		HWND ticker = CreateWindow(L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
-		HWND price = CreateWindow(L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
+		HWND ticker = CreateWindowEx(0, L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
+		HWND price = CreateWindowEx(0, L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
 		priceLabels.emplace_back(stockListing{ ticker, price });
 	}
 	UpdateWindow(hWnd);
