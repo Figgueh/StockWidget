@@ -253,7 +253,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			break;
 		case HOTKEY_CLOSE:
-			PostQuitMessage(0);
+			PostMessage(hWnd, WM_CLOSE, 0, 0);
 			break;
 		}
 		break;
