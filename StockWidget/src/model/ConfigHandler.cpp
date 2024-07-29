@@ -13,12 +13,10 @@ bool exists() {
 
 ConfigHandler::ConfigHandler()
 {
-	//if (!exists()) {
-	//	m_fileHandle.open(FILENAME, std::ios::out);
-	//	m_fileHandle << "RefreshToken: \n";
-	//	m_fileHandle << "Watchlist: \n";
-	//	m_fileHandle.close();
-	//}
+	if (!exists()) {
+		std::vector<std::wstring> fileData = { L"RefreshToken: \n", L"Position:\n", L"0,0,215,20\n", L"Watchlist:\n" };
+		writeConfig(fileData);
+	}
 }
 
 std::wstring ConfigHandler::getRefreshToken() 
@@ -69,6 +67,7 @@ WINDOWPLACEMENT ConfigHandler::getPosition()
 
 	RECT window = RECT(stol(coords[0]), stol(coords[1]), stol(coords[2]), stol(coords[3]));
 	windowPos.rcNormalPosition = window;
+
 	return windowPos;
 	
 }
@@ -96,7 +95,7 @@ std::vector<int> ConfigHandler::getTickers()
 	std::vector<std::wstring> fileData = readConfig();
 
 	// Get the position of where it lists the watchlist
-	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Watchlist:\n") - fileData.begin() + 1);
+	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Watchlist:\n") - fileData.begin()) + 1;
 	fileData.erase(fileData.begin(), fileData.begin() + pos);
 
 	// Read untill EOF
@@ -113,7 +112,10 @@ void ConfigHandler::updateTickers(std::vector<int> tickerIDs)
 
 	// Get the position of where is lists the watchlist
 	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Watchlist:\n") - fileData.begin() + 1);
-	fileData.erase(fileData.begin() + pos, fileData.end());
+
+	// If there are other tickers, remove them
+	if(fileData.size() > 4)
+		fileData.erase(fileData.begin() + 4, fileData.end());
 
 	// Replace untill EOF with new tickers
 	for (int ticker : tickerIDs) {

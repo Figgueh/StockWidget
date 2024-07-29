@@ -163,11 +163,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	// If there isn't anything in the watchlist then open the dialog to allow them to update it
 	if (watchlist.empty()) {
 		MessageBox(NULL, L"The application couldn't find any stocks for the watchlist.", L"watchlist parse error", MB_ICONERROR | MB_OK);
-		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
-	}
+		int result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
 
+		// If the save was sucessful update the watchlist.
+		if (result = IDSAVE)
+			watchlist = configuration.getTickers();
+	}
+	
     // Update the length of the window
-	::SetWindowPos(hWnd, HWND_TOPMOST, 0 ,0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
+	::SetWindowPos(hWnd, HWND_TOP, 0 ,0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOMOVE);
 
 	// Load the previously saved location of the window
 	WINDOWPLACEMENT placement = configuration.getPosition();
@@ -231,10 +235,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					DestroyWindow(listings.ticker);
 					DestroyWindow(listings.price);
 				}
+				priceLabels.clear();
 
 				// Reinitialize
+				running = true;
+				watchlist = configuration.getTickers();
+				::SetWindowPos(hWnd, HWND_TOP, 0 ,0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
 				initializeWatchlist(hWnd, handle.getQuotes(watchlist));
 				updater = std::thread(startWatching, std::ref(hWnd));
+				
 				UpdateWindow(hWnd);
 
 			}
@@ -270,11 +279,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_QUIT:
 
 		// Get the positon of the window
-		WINDOWPLACEMENT local;
-		GetWindowPlacement(hWnd, &local);
+		WINDOWPLACEMENT placement;
+		GetWindowPlacement(hWnd, &placement);
 
 		// Save it
-		configuration.updatePosition(local);
+		configuration.updatePosition(placement);
 
 		PostQuitMessage(0);
 		break;
@@ -334,6 +343,8 @@ void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes)
 
 void startWatching(HWND hWnd)
 {
+
+	OutputDebugStringW(L"Started\n");
 	while (running)
 	{
 		// Get their quotes
@@ -376,7 +387,7 @@ void startWatching(HWND hWnd)
 
 		{
 			std::unique_lock<std::mutex> lock(mymutex);
-			mycond.wait_for(lock, std::chrono::seconds(100));
+			mycond.wait_for(lock, std::chrono::seconds(10));
 		}
 	}
 

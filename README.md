@@ -3,7 +3,7 @@ A customizable stock market watchlisting application.
 This application requires a Questrade account. </br>
 An account can be made here: https://www.questrade.com/
 </br>
-Once the account is created, a refresh token can be obtained by heading to the apphub found here: https://apphub.questrade.com/</br>
+Once the account is created, a refresh token can be obtained by heading to the apphub found here: https://apphub.questrade.com/ </br>
 Clicking the button to register a personal app.
 </br>
 Name:			StockWatch</br>
