@@ -122,7 +122,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	{
 		return FALSE;
 	}
-	
+
 	ShowWindow(hWnd, nCmdShow);
 
 	RegisterHotKey(hWnd, HOTKEY_SETTINGS, MOD_ALT, 0x53); //s
@@ -169,13 +169,13 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		if (result = IDSAVE)
 			watchlist = configuration.getTickers();
 	}
-	
-    // Update the length of the window
-	::SetWindowPos(hWnd, HWND_TOP, 0 ,0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOMOVE);
+
+	// Update the length of the window
+	::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOMOVE);
 
 	// Load the previously saved location of the window
-	WINDOWPLACEMENT placement = configuration.getPosition();
-	SetWindowPlacement(hWnd, &placement);
+	//WINDOWPLACEMENT placement = configuration.getPosition();
+	//SetWindowPlacement(hWnd, &placement);
 
 	// Apply size changes
 	UpdateWindow(hWnd);
@@ -220,7 +220,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		case HOTKEY_SETTINGS:
 			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
 
-			if (hwndSettings == IDSAVE){
+			if (hwndSettings == IDSAVE) {
 				// Close the thread
 				{
 					std::lock_guard<std::mutex> guard(mymutex);
@@ -240,10 +240,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				// Reinitialize
 				running = true;
 				watchlist = configuration.getTickers();
-				::SetWindowPos(hWnd, HWND_TOP, 0 ,0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
+				::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
 				initializeWatchlist(hWnd, handle.getQuotes(watchlist));
 				updater = std::thread(startWatching, std::ref(hWnd));
-				
+
 				UpdateWindow(hWnd);
 
 			}
@@ -256,9 +256,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 	case WM_CTLCOLORSTATIC:
 	{
-		// Make the text transparent 
+		// Look for the price lables
+		std::vector<stockListing>::iterator it = std::find_if(priceLabels.begin(), priceLabels.end(), [&](const stockListing& listing) {return listing.price == (HWND)lParam; });
 		HDC hdcStatic = (HDC)wParam;
-		SetTextColor((HDC)wParam, RGB(255, 255, 255));
+
+		if (it == priceLabels.end()) {
+			SetTextColor((HDC)wParam, RGB(255, 255, 255));	// Colour for stock names
+		}
+		else {
+			SetTextColor(hdcStatic, RGB(0, 255, 0));		// Colour for stock price
+		}
+
+		// Make the background transparent
 		SetBkMode(hdcStatic, TRANSPARENT);
 		return (LRESULT)GetStockObject(HOLLOW_BRUSH);
 	}
@@ -289,7 +298,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		break;
 
 	case WM_NCHITTEST: {
-		
+
 		// Make the main window moveable just by clicking on it.
 		LRESULT hit = DefWindowProc(hWnd, message, wParam, lParam);
 		if (hit == HTCLIENT) {
@@ -373,7 +382,7 @@ void startWatching(HWND hWnd)
 						// Set the new price
 						SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
 					}
-					else{
+					else {
 						// Show the last traded price
 						std::string text = std::to_string(quote.lastTradePrice) + "*";
 						SetWindowTextA(listing.price, text.c_str());

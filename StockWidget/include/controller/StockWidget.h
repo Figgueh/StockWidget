@@ -12,6 +12,12 @@ struct stockListing
 {
 	HWND ticker;
 	HWND price;
+
+	////bool std::operator==(const stockListing& rhs , const stockListing& b) { return this->price == rhs.price; };
+	//	bool std::operator==(const stockListing& a, const stockListing& b) { return a.price == b.price;
+	//}
+
+
 };
 
 Questrade::RequestHandler handle;
