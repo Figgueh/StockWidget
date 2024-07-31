@@ -345,7 +345,7 @@ void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes)
 		// Create two lables, one with the ticker and other with the price
 		HWND ticker = CreateWindowEx(0, L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
 		HWND price = CreateWindowEx(0, L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
-		priceLabels.emplace_back(stockListing{ ticker, price });
+		priceLabels.emplace_back(stockListing{ ticker, price, quote.askPrice });
 	}
 	UpdateWindow(hWnd);
 }
@@ -379,6 +379,14 @@ void startWatching(HWND hWnd)
 
 					// Check if markets are closed
 					if (quote.askPrice != 0.000000) {
+						// Update the last price
+						// Get the text of the price
+						length = GetWindowTextLength(listing.ticker);
+						wchar_t* price = new wchar_t[length + 1];
+						GetWindowText(listing.price, price, length + 1);
+
+
+						listing.lastPrice = wcstod(price, NULL);
 						// Set the new price
 						SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
 					}
