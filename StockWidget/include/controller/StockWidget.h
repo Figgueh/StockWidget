@@ -12,6 +12,7 @@ struct stockListing
 {
 	HWND ticker;
 	HWND price;
+	double lastPrice;
 };
 
 Questrade::RequestHandler handle;
