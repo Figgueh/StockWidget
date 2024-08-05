@@ -115,7 +115,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	hInst = hInstance; // Store instance handle in our global variable
 
-	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_POPUP | WS_SYSMENU,
+	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_POPUP | WS_SYSMENU | WS_EX_LAYERED,
 		0, 0, 0, 0, nullptr, nullptr, hInstance, nullptr);
 
 	if (!hWnd)
@@ -174,8 +174,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOMOVE);
 
 	// Load the previously saved location of the window
-	//WINDOWPLACEMENT placement = configuration.getPosition();
-	//SetWindowPlacement(hWnd, &placement);
+	WINDOWPLACEMENT placement = configuration.getPosition();
+	SetWindowPlacement(hWnd, &placement);
 
 	// Apply size changes
 	UpdateWindow(hWnd);
@@ -208,16 +208,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 
-		// Makes the main window transparent
-		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
-		SetLayeredWindowAttributes(hWnd, backgroundColor, 0, LWA_COLORKEY);
+		//// Makes the main window transparent
+		//SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+		//SetLayeredWindowAttributes(hWnd, backgroundColor, 0, LWA_COLORKEY);
 
 		EndPaint(hWnd, &ps);
 	}
 	break;
 	case WM_HOTKEY:
-		switch (LOWORD(wParam)) {
+		switch (LOWORD(wParam))
+		{
 		case HOTKEY_SETTINGS:
+		{
 			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
 
 			if (hwndSettings == IDSAVE) {
@@ -245,31 +247,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				updater = std::thread(startWatching, std::ref(hWnd));
 
 				UpdateWindow(hWnd);
-
 			}
-
-			break;
+		}
+		break;
 		case HOTKEY_CLOSE:
 			PostMessage(hWnd, WM_CLOSE, 0, 0);
 			break;
 		}
 		break;
+	case WM_ERASEBKGND:
+	{
+		SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+		SetLayeredWindowAttributes(hWnd, backgroundColor, 0, LWA_COLORKEY);
+		return TRUE;
+	}
 	case WM_CTLCOLORSTATIC:
 	{
 		// Look for the price lables
 		std::vector<stockListing>::iterator it = std::find_if(priceLabels.begin(), priceLabels.end(), [&](const stockListing& listing) {return listing.price == (HWND)lParam; });
 		HDC hdcStatic = (HDC)wParam;
+		COLORREF textColour = RGB(255, 255, 255);
 
-		if (it == priceLabels.end()) {
-			SetTextColor((HDC)wParam, RGB(255, 255, 255));	// Colour for stock names
+		auto position = it - priceLabels.begin();
+		if (it != priceLabels.end()) {			// Colour for stock names
+			int length = GetWindowTextLength(priceLabels.at(position).price);
+			wchar_t* price = new wchar_t[length + 1];
+			GetWindowText(priceLabels.at(position).price, price, length + 1);
+			double priceD = wcstod(price, NULL);
+
+
+			// If it is a gainer turn green
+			if (priceD > priceLabels.at(position).lastPrice)
+				textColour = RGB(0, 255, 0);
+
+			// If it is a looser turn red
+			if (priceD < priceLabels.at(position).lastPrice)
+				textColour = RGB(255, 0, 0);
+
+			// No change keep it normal
 		}
-		else {
-			SetTextColor(hdcStatic, RGB(0, 255, 0));		// Colour for stock price
-		}
+
+		SetTextColor(hdcStatic, textColour);
 
 		// Make the background transparent
 		SetBkMode(hdcStatic, TRANSPARENT);
-		return (LRESULT)GetStockObject(HOLLOW_BRUSH);
+		SetDCBrushColor(hdcStatic, backgroundColor);
+		return (LRESULT)GetStockObject(DC_BRUSH);
 	}
 	break;
 	case WM_COMMAND:
@@ -286,7 +309,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CLOSE:
 	case WM_DESTROY:
 	case WM_QUIT:
-
+	{
 		// Get the positon of the window
 		WINDOWPLACEMENT placement;
 		GetWindowPlacement(hWnd, &placement);
@@ -295,10 +318,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		configuration.updatePosition(placement);
 
 		PostQuitMessage(0);
-		break;
+	}
+	break;
 
-	case WM_NCHITTEST: {
-
+	case WM_NCHITTEST:
+	{
 		// Make the main window moveable just by clicking on it.
 		LRESULT hit = DefWindowProc(hWnd, message, wParam, lParam);
 		if (hit == HTCLIENT) {
@@ -321,7 +345,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 		return hit;
 	}
-	case WM_SIZE: {
+	break;
+	case WM_SIZE:
+	{
 		// Make rounded corners.
 		RECT wRect;
 		if (::GetWindowRect(hWnd, &wRect)) {
@@ -330,7 +356,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			::DeleteObject(hRgn);
 		}
 	}
-				break;
+	break;
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}
@@ -371,22 +397,15 @@ void startWatching(HWND hWnd)
 
 				// If the stocks match, update the price
 				if (ticker == toWString(quote.symbol)) {
-					// Fix to remove previous price since background wasn't visible.
-					RECT rect;
-					GetClientRect(listing.price, &rect);
-					MapWindowPoints(listing.price, hWnd, (POINT*)&rect, 2);
-					InvalidateRect(hWnd, &rect, TRUE);
 
 					// Check if markets are closed
 					if (quote.askPrice != 0.000000) {
 						// Update the last price
-						// Get the text of the price
-						length = GetWindowTextLength(listing.ticker);
+						length = GetWindowTextLength(listing.price);
 						wchar_t* price = new wchar_t[length + 1];
 						GetWindowText(listing.price, price, length + 1);
-
-
 						listing.lastPrice = wcstod(price, NULL);
+
 						// Set the new price
 						SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
 					}
