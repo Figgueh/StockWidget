@@ -19,11 +19,11 @@ How to use application:
 With the application in focus, Clicking any text (ticker or price) will cause the window to start dragging. Once moved to the desiered location, left clicking with the mouse will stick it to that location.
 Performing the click directly on the text can be challanging so a quality of life feature was added where holding ctrl will cause the window to start dragging. (Note: it must still be the application with focus)
 </br> </br>
-Global hotkeys:						
+Global hotkeys:	</br>	
 ALT + s		-	Opens window that allows you to search and add stocks to your watchlist. </br>
 ALT + esc	-	Closes application </br>
 
-
+</br></br>
 
 
 Future plans:
