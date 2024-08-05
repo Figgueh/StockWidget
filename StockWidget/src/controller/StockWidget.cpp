@@ -9,6 +9,8 @@
 #include "controller/Search.h"
 #include "controller/RefreshToken.h"
 
+#include "controller/StockUpdater.h"
+
 
 #define MAX_LOADSTRING 100
 
@@ -18,7 +20,7 @@ WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 Questrade::Authentication auth;
 COLORREF backgroundColor = RGB(255, 240, 255);
-std::thread updater;
+//std::thread updater;
 
 INT_PTR hwndSettings = NULL;  // Window handle of dialog box 
 
@@ -62,13 +64,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
-	// Close the thread
-	{
-		std::lock_guard<std::mutex> guard(mymutex);
-		running = false;
-	}
-	mycond.notify_all();
-	updater.join();
+	StockWatch::stopWatching();
 
 	return (int)msg.wParam;
 }
@@ -184,7 +180,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		initializeWatchlist(std::ref(hWnd), handle.getQuotes(watchlist));
 
 	// Start the updater thread
-	updater = std::thread(startWatching, std::ref(hWnd));
+	StockWatch::updater = std::thread(StockWatch::startWatching, std::ref(hWnd));
 
 	return TRUE;
 }
@@ -223,13 +219,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
 
 			if (hwndSettings == IDSAVE) {
-				// Close the thread
-				{
-					std::lock_guard<std::mutex> guard(mymutex);
-					running = false;
-				}
-				mycond.notify_all();
-				updater.join();
+				StockWatch::stopWatching();
 				OutputDebugStringW(L"Updater closed\n");
 
 				// Remove old labels
@@ -240,11 +230,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				priceLabels.clear();
 
 				// Reinitialize
-				running = true;
+				StockWatch::running = true;
 				watchlist = configuration.getTickers();
 				::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
 				initializeWatchlist(hWnd, handle.getQuotes(watchlist));
-				updater = std::thread(startWatching, std::ref(hWnd));
+				StockWatch::updater = std::thread(StockWatch::startWatching, std::ref(hWnd));
 
 				UpdateWindow(hWnd);
 			}
@@ -363,8 +353,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-
-
 void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes)
 {
 	for (Questrade::Quote& quote : quotes.quotes) {
@@ -374,58 +362,4 @@ void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes)
 		priceLabels.emplace_back(stockListing{ ticker, price, quote.askPrice });
 	}
 	UpdateWindow(hWnd);
-}
-
-void startWatching(HWND hWnd)
-{
-
-	OutputDebugStringW(L"Started\n");
-	while (running)
-	{
-		// Get their quotes
-		Questrade::Quotes watchlistQuotes = handle.getQuotes(watchlist);
-
-		for (Questrade::Quote& quote : watchlistQuotes.quotes)
-		{
-
-			for (stockListing& listing : priceLabels)
-			{
-				// Get the text of the ticker
-				int length = GetWindowTextLength(listing.ticker);
-				wchar_t* ticker = new wchar_t[length + 1];
-				GetWindowText(listing.ticker, ticker, length + 1);
-
-				// If the stocks match, update the price
-				if (ticker == toWString(quote.symbol)) {
-
-					// Check if markets are closed
-					if (quote.askPrice != 0.000000) {
-						// Update the last price
-						length = GetWindowTextLength(listing.price);
-						wchar_t* price = new wchar_t[length + 1];
-						GetWindowText(listing.price, price, length + 1);
-						listing.lastPrice = wcstod(price, NULL);
-
-						// Set the new price
-						SetWindowTextA(listing.price, std::to_string(quote.askPrice).c_str());
-					}
-					else {
-						// Show the last traded price
-						std::string text = std::to_string(quote.lastTradePrice) + "*";
-						SetWindowTextA(listing.price, text.c_str());
-
-					}
-				}
-			}
-		}
-		OutputDebugStringW(L"Updated\n");
-		UpdateWindow(hWnd);
-
-		{
-			std::unique_lock<std::mutex> lock(mymutex);
-			mycond.wait_for(lock, std::chrono::seconds(10));
-		}
-	}
-
-
 }

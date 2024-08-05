@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\controller\StockUpdater.h" />
     <ClInclude Include="include\model\ConfigHandler.h" />
     <ClInclude Include="include\api\framework.h" />
     <ClInclude Include="include\utility\json.hpp" />
