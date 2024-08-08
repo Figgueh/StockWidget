@@ -6,6 +6,7 @@
 #include "model/RequestHandler.h"
 #include "model/ConfigHandler.h"
 #include "api/resource.h"
+#include "controller/Settings.h"
 
 
 
@@ -36,6 +37,7 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 	switch (message)
 	{
 	case  WM_INITDIALOG:
+	{
 		//Get the requesthandler variable from that main application
 		handler = *(Questrade::RequestHandler*)lParam;
 
@@ -47,8 +49,9 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 			SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_SETITEMDATA, pos, (LPARAM)id);
 		}
 
-		break;
 
+	}
+	break;
 	case WM_COMMAND:
 	{
 		int wmId = LOWORD(wParam);
@@ -105,7 +108,7 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 			GetDlgItemText(hDlg, IDC_TICKER, szText, bufSize);
 			res = handler.searchTicker(toString(szText));
 
-			for (Questrade::Symbol& current : res.symbols){
+			for (Questrade::Symbol& current : res.symbols) {
 				if (current.isQuotable && current.isTradable && (current.securityType == "MutualFund" || current.securityType == "Stock")) {
 					int pos = (int)SendDlgItemMessage(hDlg, IDC_TICKERLIST, LB_ADDSTRING, current.symbolId, (LPARAM)toWString(current.symbol + " - " + current.description).c_str());
 					SendDlgItemMessage(hDlg, IDC_TICKERLIST, LB_SETITEMDATA, pos, (LPARAM)current.symbolId);
@@ -125,11 +128,17 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 				lbItem = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
 
 				// Get item data.
-				i = (int) (SendMessage(hwndList, LB_GETITEMDATA, lbItem, 0));
+				i = (int)(SendMessage(hwndList, LB_GETITEMDATA, lbItem, 0));
 
 				return TRUE;
 			}
 			}
+		}
+		break;
+		case IDC_ADVANCED:
+		{
+			DialogBoxW(GetModuleHandle(NULL), (LPWSTR)IDD_SETTINGS, hDlg, WndSettingProc);
+
 		}
 		default:
 			return (INT_PTR)TRUE;

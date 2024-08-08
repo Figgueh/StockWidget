@@ -48,9 +48,6 @@
     <ClInclude Include="include\api\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\api\Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\model\Authentication.h">
       <Filter>Header Files\Questrade</Filter>
     </ClInclude>
@@ -87,6 +84,18 @@
     <ClInclude Include="include\controller\RefreshToken.h">
       <Filter>Header Files\View</Filter>
     </ClInclude>
+    <ClInclude Include="include\controller\StockUpdater.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\api\Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\controller\Settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\model\ConfigHandler.cpp">
@@ -122,6 +131,9 @@
     <ClCompile Include="src\controller\RefreshToken.cpp">
       <Filter>Source Files\View</Filter>
     </ClCompile>
+    <ClCompile Include="src\controller\Settings.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="StockWidget.rc">
@@ -129,10 +141,16 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico">
+    <Image Include="media\small.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="media\StockWidget.ico">
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="StockWidget.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="small.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

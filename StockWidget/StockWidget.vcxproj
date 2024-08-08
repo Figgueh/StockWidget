@@ -105,7 +105,7 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>src;include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>media;src;include</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
@@ -113,6 +113,9 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>media/;include/api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -133,6 +136,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\controller\Settings.h" />
     <ClInclude Include="include\controller\StockUpdater.h" />
     <ClInclude Include="include\model\ConfigHandler.h" />
     <ClInclude Include="include\api\framework.h" />
@@ -142,7 +146,6 @@
     <ClInclude Include="include\controller\RefreshToken.h" />
     <ClInclude Include="include\utility\RequestError.h" />
     <ClInclude Include="include\model\RequestHandler.h" />
-    <ClInclude Include="include\api\Resource.h" />
     <ClInclude Include="include\controller\Search.h" />
     <ClInclude Include="include\controller\StockWidget.h" />
     <ClInclude Include="include\questrade\Symbol.h" />
@@ -151,6 +154,7 @@
     <ClInclude Include="WinHttp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\controller\Settings.cpp" />
     <ClCompile Include="src\model\Authentication.cpp" />
     <ClCompile Include="src\model\ConfigHandler.cpp" />
     <ClCompile Include="src\questrade\Quote.cpp" />
@@ -167,6 +171,8 @@
     <ResourceCompile Include="StockWidget.rc" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="media\small.ico" />
+    <Image Include="media\StockWidget.ico" />
     <Image Include="small.ico" />
     <Image Include="StockWidget.ico" />
   </ItemGroup>

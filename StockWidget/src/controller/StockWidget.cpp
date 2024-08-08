@@ -162,7 +162,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 		int result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
 
 		// If the save was sucessful update the watchlist.
-		if (result = IDSAVE)
+		if (result == IDSAVE)
 			watchlist = configuration.getTickers();
 	}
 
