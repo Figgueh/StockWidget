@@ -15,9 +15,14 @@ struct stockListing
 	double lastPrice;
 };
 
-Questrade::RequestHandler handle;
-std::vector<int> watchlist;
-std::vector<stockListing> priceLabels;
+inline Questrade::RequestHandler handle;
+inline std::vector<int> watchlist;
+inline std::vector<stockListing> priceLabels;
 void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes);
+//void startWatching(HWND hwnd);
 
-ConfigHandler configuration;
+
+inline ConfigHandler configuration;
+//std::mutex mymutex;
+//std::condition_variable mycond;
+//bool running = true;
