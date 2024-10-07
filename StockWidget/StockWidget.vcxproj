@@ -151,6 +151,7 @@
     <ClInclude Include="include\questrade\Symbol.h" />
     <ClInclude Include="include\api\targetver.h" />
     <ClInclude Include="include\utility\Toolbox.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="WinHttp.h" />
   </ItemGroup>
   <ItemGroup>

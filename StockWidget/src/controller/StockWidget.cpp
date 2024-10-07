@@ -20,9 +20,9 @@ WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 Questrade::Authentication auth;
 COLORREF backgroundColor = RGB(255, 240, 255);
-//std::thread updater;
 
-INT_PTR hwndSettings = NULL;  // Window handle of dialog box 
+INT_PTR hwndStocks = NULL;  // Window handle of dialog box 
+INT_PTR hwndSettings = NULL;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -121,8 +121,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	ShowWindow(hWnd, nCmdShow);
 
-	RegisterHotKey(hWnd, HOTKEY_SETTINGS, MOD_ALT, 0x53); //s
-	RegisterHotKey(hWnd, HOTKEY_CLOSE, MOD_ALT, VK_ESCAPE); //esc
+	RegisterHotKey(hWnd, HOTKEY_SETTINGS, MOD_CONTROL, 0x53);	// Ctrl + s
+	RegisterHotKey(hWnd, HOTKEY_STOCKS, MOD_ALT, 0x53);			// Alt + s
+	RegisterHotKey(hWnd, HOTKEY_CLOSE, MOD_ALT, VK_ESCAPE);		//esc
 
 	std::string refreshToken;
 
@@ -216,9 +217,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case HOTKEY_SETTINGS:
 		{
-			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
+			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, WndSearchProc, (LPARAM)&handle);
 
-			if (hwndSettings == IDSAVE) {
+		}
+		break;
+		case HOTKEY_STOCKS:
+		{
+			hwndStocks = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handle);
+
+			if (hwndStocks == IDSAVE) {
 				StockWatch::stopWatching();
 				OutputDebugStringW(L"Updater closed\n");
 

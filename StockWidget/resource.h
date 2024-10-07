@@ -20,6 +20,7 @@
 #define IDC_WATCHLIST                   1004
 #define IDC_EDIT                        1005
 #define IDC_ADDWISHLIST                 1006
+#define HOTKEY_SETTINGS                 1007
 #define IDC_CHECK1                      1007
 #define IDC_CHECK2                      1008
 #define HOTKEY_CLOSE                    1009
@@ -29,9 +30,6 @@
 #define IDC_BUTTON1                     1012
 #define IDC_COLOUR                      1012
 #define IDC_STATIC                      -1
-#define HOTKEY_STOCKS	                1100
-#define HOTKEY_SETTINGS                 1101
-
 
 // Next default values for new objects
 // 
