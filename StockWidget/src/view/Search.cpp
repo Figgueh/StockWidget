@@ -1,10 +1,10 @@
 // Search.cpp : Defines the possible actions related to searching for stock tickers.
 //
 
-#include "controller/Search.h"
+#include "view/Search.h"
 #include "utility/Toolbox.h"
-#include "model/RequestHandler.h"
-#include "model/ConfigHandler.h"
+#include "controller/RequestHandler.h"
+#include "controller/ConfigHandler.h"
 #include "api/resource.h"
 
 

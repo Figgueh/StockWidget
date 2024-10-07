@@ -1,5 +1,5 @@
-#include "controller/RefreshToken.h"
-#include "model/ConfigHandler.h"
+#include "view/RefreshToken.h"
+#include "controller/ConfigHandler.h"
 #include "utility/Toolbox.h"
 
 

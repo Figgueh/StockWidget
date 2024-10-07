@@ -2,12 +2,12 @@
 //
 
 #include "api/framework.h"
-#include "controller/StockWidget.h"
+#include "view/StockWidget.h"
 #include "utility/json.hpp"
 #include "utility/Toolbox.h"
 #include "utility/RequestError.h"
-#include "controller/Search.h"
-#include "controller/RefreshToken.h"
+#include "view/Search.h"
+#include "view/RefreshToken.h"
 
 #include "controller/StockUpdater.h"
 

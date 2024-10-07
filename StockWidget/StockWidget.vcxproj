@@ -134,32 +134,32 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="include\controller\StockUpdater.h" />
-    <ClInclude Include="include\model\ConfigHandler.h" />
+    <ClInclude Include="include\controller\ConfigHandler.h" />
     <ClInclude Include="include\api\framework.h" />
     <ClInclude Include="include\utility\json.hpp" />
-    <ClInclude Include="include\model\Authentication.h" />
-    <ClInclude Include="include\questrade\Quote.h" />
-    <ClInclude Include="include\controller\RefreshToken.h" />
+    <ClInclude Include="include\controller\Authentication.h" />
+    <ClInclude Include="include\model\questrade\Quote.h" />
+    <ClInclude Include="include\view\RefreshToken.h" />
     <ClInclude Include="include\utility\RequestError.h" />
-    <ClInclude Include="include\model\RequestHandler.h" />
+    <ClInclude Include="include\controller\RequestHandler.h" />
     <ClInclude Include="include\api\Resource.h" />
-    <ClInclude Include="include\controller\Search.h" />
-    <ClInclude Include="include\controller\StockWidget.h" />
-    <ClInclude Include="include\questrade\Symbol.h" />
+    <ClInclude Include="include\view\Search.h" />
+    <ClInclude Include="include\view\StockWidget.h" />
+    <ClInclude Include="include\model\questrade\Symbol.h" />
     <ClInclude Include="include\api\targetver.h" />
     <ClInclude Include="include\utility\Toolbox.h" />
     <ClInclude Include="WinHttp.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\model\Authentication.cpp" />
-    <ClCompile Include="src\model\ConfigHandler.cpp" />
-    <ClCompile Include="src\questrade\Quote.cpp" />
-    <ClCompile Include="src\controller\RefreshToken.cpp" />
+    <ClCompile Include="src\controller\Authentication.cpp" />
+    <ClCompile Include="src\controller\ConfigHandler.cpp" />
+    <ClCompile Include="src\model\questrade\Quote.cpp" />
+    <ClCompile Include="src\view\RefreshToken.cpp" />
     <ClCompile Include="src\utility\RequestError.cpp" />
-    <ClCompile Include="src\model\RequestHandler.cpp" />
-    <ClCompile Include="src\controller\Search.cpp" />
-    <ClCompile Include="src\controller\StockWidget.cpp" />
-    <ClCompile Include="src\questrade\Symbol.cpp" />
+    <ClCompile Include="src\controller\RequestHandler.cpp" />
+    <ClCompile Include="src\view\Search.cpp" />
+    <ClCompile Include="src\view\StockWidget.cpp" />
+    <ClCompile Include="src\model\questrade\Symbol.cpp" />
     <ClCompile Include="src\utility\Toolbox.cpp" />
     <ClCompile Include="WinHttp.cpp" />
   </ItemGroup>
