@@ -3,9 +3,9 @@
 #include <vector>
 #include <mutex>
 
-#include "model/Authentication.h"
-#include "model/RequestHandler.h"
-#include "model/ConfigHandler.h"
+#include "controller/Authentication.h"
+#include "controller/RequestHandler.h"
+#include "controller/ConfigHandler.h"
 #include "api/resource.h"
 
 struct stockListing

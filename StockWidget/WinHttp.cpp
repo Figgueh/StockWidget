@@ -4,7 +4,7 @@
 #include "WinHttp.h"
 #include "utility/RequestError.h"
 #include "utility/toolbox.h"
-#include "model/Authentication.h"
+#include "controller/Authentication.h"
 
 void WinHttp::open()
 {

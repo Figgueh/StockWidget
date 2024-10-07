@@ -2,8 +2,8 @@
 #include <exception>
 #include "Authentication.h"
 #include "../WinHttp.h"
-#include "questrade/Quote.h"
-#include "questrade/Symbol.h"
+#include "model/questrade/Quote.h"
+#include "model/questrade/Symbol.h"
 
 namespace Questrade
 {
