@@ -1,7 +1,7 @@
 #include <atlbase.h>
 #include <exception>
 
-#include "WinHttp.h"
+#include "controller/WinHttp.h"
 #include "utility/RequestError.h"
 #include "utility/toolbox.h"
 #include "controller/Authentication.h"

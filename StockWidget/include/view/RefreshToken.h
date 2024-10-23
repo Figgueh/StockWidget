@@ -1,5 +1,5 @@
 #pragma once
-#include "api/resource.h"
+#include "resource.h"
 #include "api/framework.h"
 #include "controller/Authentication.h"
 

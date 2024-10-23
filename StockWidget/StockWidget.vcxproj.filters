@@ -48,90 +48,90 @@
     <ClInclude Include="include\api\targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\model\Authentication.h">
-      <Filter>Header Files\Questrade</Filter>
-    </ClInclude>
-    <ClInclude Include="include\model\ConfigHandler.h">
-      <Filter>Header Files\FileManager</Filter>
-    </ClInclude>
     <ClInclude Include="include\utility\Toolbox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\utility\json.hpp">
       <Filter>Header Files\nlohmann</Filter>
     </ClInclude>
-    <ClInclude Include="WinHttp.h">
+    <ClInclude Include="include\controller\WinHttp.h">
       <Filter>Header Files\Network</Filter>
     </ClInclude>
     <ClInclude Include="include\utility\RequestError.h">
       <Filter>Header Files\Network</Filter>
     </ClInclude>
-    <ClInclude Include="include\model\RequestHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\questrade\Quote.h">
-      <Filter>Header Files\Questrade</Filter>
-    </ClInclude>
-    <ClInclude Include="include\controller\StockWidget.h">
-      <Filter>Header Files\View</Filter>
-    </ClInclude>
-    <ClInclude Include="include\controller\Search.h">
-      <Filter>Header Files\View</Filter>
-    </ClInclude>
-    <ClInclude Include="include\questrade\Symbol.h">
-      <Filter>Header Files\Questrade</Filter>
-    </ClInclude>
-    <ClInclude Include="include\controller\RefreshToken.h">
-      <Filter>Header Files\View</Filter>
-    </ClInclude>
     <ClInclude Include="include\controller\StockUpdater.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\api\Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\controller\Settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\controller\ConfigHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\controller\Authentication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\questrade\Quote.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\view\RefreshToken.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\controller\RequestHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\view\Search.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\view\StockWidget.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\questrade\Symbol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\view\Settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\model\ConfigHandler.cpp">
-      <Filter>Source Files\FileManager</Filter>
-    </ClCompile>
     <ClCompile Include="src\utility\Toolbox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\model\Authentication.cpp">
-      <Filter>Source Files\Questrade</Filter>
-    </ClCompile>
-    <ClCompile Include="WinHttp.cpp">
+    <ClCompile Include="src\controller\WinHttp.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
     <ClCompile Include="src\utility\RequestError.cpp">
       <Filter>Source Files\Network</Filter>
     </ClCompile>
-    <ClCompile Include="src\model\RequestHandler.cpp">
+    <ClCompile Include="src\view\Settings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\controller\StockWidget.cpp">
-      <Filter>Source Files\View</Filter>
+    <ClCompile Include="include\model\ApplicationSettings.h">
+      <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\controller\Search.cpp">
-      <Filter>Source Files\View</Filter>
+    <ClCompile Include="src\controller\Authentication.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\questrade\Quote.cpp">
-      <Filter>Source Files\Questrade</Filter>
+    <ClCompile Include="src\controller\ConfigHandler.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\questrade\Symbol.cpp">
-      <Filter>Source Files\Questrade</Filter>
+    <ClCompile Include="src\model\questrade\Quote.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\controller\RefreshToken.cpp">
-      <Filter>Source Files\View</Filter>
+    <ClCompile Include="src\view\RefreshToken.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\controller\Settings.cpp">
+    <ClCompile Include="src\controller\RequestHandler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\view\Search.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\view\StockWidget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\questrade\Symbol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -145,12 +145,6 @@
       <Filter>Resource Files</Filter>
     </Image>
     <Image Include="media\StockWidget.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="StockWidget.ico">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="small.ico">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>

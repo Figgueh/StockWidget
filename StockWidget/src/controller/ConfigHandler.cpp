@@ -1,6 +1,7 @@
 #include "controller/ConfigHandler.h"
 #include "utility/Toolbox.h"
 
+
 std::wstring stripToken(std::wstring currentLine)
 {
 	return currentLine.erase(0, 14);
@@ -14,7 +15,14 @@ bool exists() {
 ConfigHandler::ConfigHandler()
 {
 	if (!exists()) {
-		std::vector<std::wstring> fileData = { L"RefreshToken: \n", L"Position:\n", L"0,0,215,20\n", L"Watchlist:\n" };
+		std::vector<std::wstring> fileData = { 
+			L"RefreshToken: \n",
+			L"Settings:\n",
+			L"0,0\n",
+			L"Position:\n", 
+			L"0,0,215,20\n", 
+			L"Watchlist:\n"
+		};
 		writeConfig(fileData);
 	}
 }
@@ -48,6 +56,36 @@ void ConfigHandler::updateRefreshToken(std::string token)
 	writeConfig(fileData);
 }
 
+ApplicationSettings ConfigHandler::getSettings()
+{
+	std::vector<std::wstring> fileData = readConfig();
+
+	// Get the position of where the settings are
+	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Settings:\n") - fileData.begin() + 1);
+
+	std::wstring settingData = fileData[pos];
+	std::vector<int> settingDataSplit = split(settingData, ",");
+	ApplicationSettings appSettings;
+
+	appSettings.alwaysOnTop = settingDataSplit[0];
+	appSettings.rememberLocation = settingDataSplit[1];
+
+
+	return appSettings;
+}
+
+void ConfigHandler::updateSettings(ApplicationSettings settings)
+{
+	std::vector<std::wstring> fileData = readConfig();
+	
+	// Get the position of where the settings are
+	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Settings:\n") - fileData.begin() + 1);
+
+	fileData[pos] = std::to_wstring(settings.alwaysOnTop) + L"," + std::to_wstring(settings.rememberLocation) + L"\n";
+
+	writeConfig(fileData);
+}
+
 WINDOWPLACEMENT ConfigHandler::getPosition()
 {
 	std::vector<std::wstring> fileData = readConfig();
@@ -56,7 +94,7 @@ WINDOWPLACEMENT ConfigHandler::getPosition()
 	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Position:\n") - fileData.begin() + 1);
 
 	std::wstring positioning = fileData[pos];
-	std::vector<std::wstring> coords = split(positioning, ",");
+	std::vector<int> coords = split(positioning, ",");
 
 	WINDOWPLACEMENT windowPos;
 	windowPos.length = sizeof(windowPos);
@@ -65,7 +103,7 @@ WINDOWPLACEMENT ConfigHandler::getPosition()
 	windowPos.ptMinPosition = POINT(-1, -1);
 	windowPos.ptMaxPosition = POINT(-1, -1);
 
-	RECT window = RECT(stol(coords[0]), stol(coords[1]), stol(coords[2]), stol(coords[3]));
+	RECT window = RECT(coords[0], coords[1], coords[2], coords[3]);
 	windowPos.rcNormalPosition = window;
 
 	return windowPos;
@@ -114,8 +152,8 @@ void ConfigHandler::updateTickers(std::vector<int> tickerIDs)
 	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Watchlist:\n") - fileData.begin() + 1);
 
 	// If there are other tickers, remove them
-	if(fileData.size() > 4)
-		fileData.erase(fileData.begin() + 4, fileData.end());
+	if(fileData.size() > pos)
+		fileData.erase(fileData.begin() + pos, fileData.end());
 
 	// Replace untill EOF with new tickers
 	for (int ticker : tickerIDs) {

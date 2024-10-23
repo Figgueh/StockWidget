@@ -20,15 +20,16 @@
 #define IDC_WATCHLIST                   1004
 #define IDC_EDIT                        1005
 #define IDC_ADDWISHLIST                 1006
-#define HOTKEY_SETTINGS                 1007
-#define IDC_CHECK1                      1007
-#define IDC_CHECK2                      1008
+#define IDC_ALWAYS_TOP                  1007
+#define IDC_REMEBER                     1008
 #define HOTKEY_CLOSE                    1009
 #define IDC_REMOVE                      1010
 #define IDC_MFCCOLORBUTTON1             1011
 #define IDC_ADVANCED                    1012
 #define IDC_BUTTON1                     1012
-#define IDC_COLOUR                      1012
+#define IDSAVESETTINGS                  1013
+#define HOTKEY_STOCKS                   1100
+#define HOTKEY_SETTINGS                 1101
 #define IDC_STATIC                      -1
 
 // Next default values for new objects
@@ -38,7 +39,7 @@
 #define _APS_NO_MFC                     1
 #define _APS_NEXT_RESOURCE_VALUE        132
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1013
+#define _APS_NEXT_CONTROL_VALUE         1014
 #define _APS_NEXT_SYMED_VALUE           110
 #endif
 #endif

@@ -5,8 +5,8 @@
 #include "utility/Toolbox.h"
 #include "controller/RequestHandler.h"
 #include "controller/ConfigHandler.h"
-#include "api/resource.h"
-#include "controller/Settings.h"
+#include "resource.h"
+#include "view/Settings.h"
 
 
 

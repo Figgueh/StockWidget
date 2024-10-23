@@ -1,4 +1,4 @@
-#include "questrade/Quote.h"
+#include "model/questrade/Quote.h"
 
 void Questrade::from_json(const nlohmann::json& j, Quote& q)
 {

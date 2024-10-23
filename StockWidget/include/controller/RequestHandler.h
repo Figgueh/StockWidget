@@ -1,7 +1,7 @@
 #pragma once
 #include <exception>
 #include "Authentication.h"
-#include "../WinHttp.h"
+#include "controller/WinHttp.h"
 #include "model/questrade/Quote.h"
 #include "model/questrade/Symbol.h"
 

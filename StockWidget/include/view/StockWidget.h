@@ -6,7 +6,8 @@
 #include "controller/Authentication.h"
 #include "controller/RequestHandler.h"
 #include "controller/ConfigHandler.h"
-#include "api/resource.h"
+#include "resource.h"
+#include "model/ApplicationSettings.h"
 
 struct stockListing
 {
@@ -16,11 +17,11 @@ struct stockListing
 };
 
 inline Questrade::RequestHandler handle;
+inline ApplicationSettings settings;
 inline std::vector<int> watchlist;
 inline std::vector<stockListing> priceLabels;
 void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes);
 //void startWatching(HWND hwnd);
-
 
 inline ConfigHandler configuration;
 //std::mutex mymutex;

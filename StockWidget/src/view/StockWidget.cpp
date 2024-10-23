@@ -8,6 +8,7 @@
 #include "utility/RequestError.h"
 #include "view/Search.h"
 #include "view/RefreshToken.h"
+#include "view/Settings.h"
 
 #include "controller/StockUpdater.h"
 
@@ -153,6 +154,8 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	configuration.updateRefreshToken(refreshToken);
 	handle = Questrade::RequestHandler(auth);
 
+	// Get the settings of the user
+	settings = configuration.getSettings();
 
 	// Get the list of ids thats in the watchlist
 	watchlist = configuration.getTickers();
@@ -217,7 +220,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case HOTKEY_SETTINGS:
 		{
-			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, WndSearchProc, (LPARAM)&handle);
+			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, WndSettingProc, (LPARAM)&handle);
 
 		}
 		break;
