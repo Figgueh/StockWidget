@@ -18,7 +18,7 @@ namespace StockWatch
 		while (running)
 		{
 			// Get their quotes
-			Questrade::Quotes watchlistQuotes = handle.getQuotes(watchlist);
+			Questrade::Quotes watchlistQuotes = handlerPackage.requestHandler.getQuotes(watchlist);
 
 			for (Questrade::Quote& quote : watchlistQuotes.quotes)
 			{

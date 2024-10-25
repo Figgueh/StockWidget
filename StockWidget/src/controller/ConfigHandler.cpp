@@ -1,12 +1,6 @@
 #include "controller/ConfigHandler.h"
 #include "utility/Toolbox.h"
 
-
-std::wstring stripToken(std::wstring currentLine)
-{
-	return currentLine.erase(0, 14);
-}
-
 bool exists() {
 	struct stat buffer;
 	return (stat(ConfigHandler::FILENAME.c_str(), &buffer) == 0);
@@ -15,87 +9,64 @@ bool exists() {
 ConfigHandler::ConfigHandler()
 {
 	if (!exists()) {
-		std::vector<std::wstring> fileData = { 
-			L"RefreshToken: \n",
-			L"Settings:\n",
-			L"0,0\n",
-			L"Position:\n", 
-			L"0,0,215,20\n", 
-			L"Watchlist:\n"
+		m_toWriteBuffer = { 
+			L"RefreshToken:",
+			L"",
+			L"Settings:",
+			L"0,0",
+			L"Position:", 
+			L"0,0,215,20", 
+			L"Watchlist:"
 		};
-		writeConfig(fileData);
+	} else {
+		m_toWriteBuffer = readConfig();
+	}
+}
+
+ConfigHandler::~ConfigHandler()
+{
+	writeConfig(m_toWriteBuffer);
+}
+
+int ConfigHandler::findLineNumber(std::wstring line)
+{
+	std::vector<std::wstring>::iterator it = std::find(m_toWriteBuffer.begin(), m_toWriteBuffer.end(), line);
+	if (it != m_toWriteBuffer.end())
+	{
+		return std::next(it) - m_toWriteBuffer.begin();
+	}
+	else {
+		//Throw error
 	}
 }
 
 std::wstring ConfigHandler::getRefreshToken() 
 {
-	std::wstring currentLine;
-	std::wifstream fileHandle{};
-
-
-	fileHandle.open(FILENAME, std::ios::in);
-	if (fileHandle.is_open()) {
-		while (std::getline(fileHandle, currentLine)) {
-			
-			if (currentLine.find(L"RefreshToken: ") != std::string::npos) {
-				return stripToken(currentLine);
-			}
-		}
-	}
-	fileHandle.close();
-
-	return L"";
+	return m_toWriteBuffer[findLineNumber(L"RefreshToken:")];
 }
 
 void ConfigHandler::updateRefreshToken(std::string token) 
 {
-	std::vector<std::wstring> fileData = readConfig();
-
-	fileData[0] = L"RefreshToken: " + toWString(token) + L"\n";
-
-	writeConfig(fileData);
+	m_toWriteBuffer[findLineNumber(L"RefreshToken:")] = toWString(token) + L"";
 }
 
 ApplicationSettings ConfigHandler::getSettings()
 {
-	std::vector<std::wstring> fileData = readConfig();
-
-	// Get the position of where the settings are
-	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Settings:\n") - fileData.begin() + 1);
-
-	std::wstring settingData = fileData[pos];
-	std::vector<int> settingDataSplit = split(settingData, ",");
-	ApplicationSettings appSettings;
-
-	appSettings.alwaysOnTop = settingDataSplit[0];
-	appSettings.rememberLocation = settingDataSplit[1];
-
-
-	return appSettings;
+	std::wstring data = m_toWriteBuffer[findLineNumber(L"Settings:")];
+	std::vector<int> dataSplit = split(data, ",");
+	return ApplicationSettings(dataSplit[0], dataSplit[1]);
 }
 
 void ConfigHandler::updateSettings(ApplicationSettings settings)
 {
-	std::vector<std::wstring> fileData = readConfig();
-	
-	// Get the position of where the settings are
-	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Settings:\n") - fileData.begin() + 1);
-
-	fileData[pos] = std::to_wstring(settings.alwaysOnTop) + L"," + std::to_wstring(settings.rememberLocation) + L"\n";
-
-	writeConfig(fileData);
+	m_toWriteBuffer[findLineNumber(L"Settings:")] = std::to_wstring(settings.alwaysOnTop) + L"," + std::to_wstring(settings.rememberLocation) + L"";
 }
 
 WINDOWPLACEMENT ConfigHandler::getPosition()
 {
-	std::vector<std::wstring> fileData = readConfig();
-
-	// Get the position of where the coordinates are
-	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Position:\n") - fileData.begin() + 1);
-
-	std::wstring positioning = fileData[pos];
-	std::vector<int> coords = split(positioning, ",");
-
+	std::wstring data = m_toWriteBuffer[findLineNumber(L"Position:")];
+	std::vector<int> coords = split(data, ",");
+	
 	WINDOWPLACEMENT windowPos;
 	windowPos.length = sizeof(windowPos);
 	windowPos.flags = 0;
@@ -107,60 +78,41 @@ WINDOWPLACEMENT ConfigHandler::getPosition()
 	windowPos.rcNormalPosition = window;
 
 	return windowPos;
-	
 }
 
 void ConfigHandler::updatePosition(WINDOWPLACEMENT& pos)
 {
-	std::vector<std::wstring> fileData = readConfig();
-
-	// Get the position of where the coordinates are
-	ptrdiff_t index = (std::find(fileData.begin(), fileData.end(), L"Position:\n") - fileData.begin() + 1);
-
 	RECT window = pos.rcNormalPosition;
-	std::wstring positioning =	std::to_wstring(window.left) + L"," + 
-								std::to_wstring(window.top) + L","  +
-								std::to_wstring(window.right) + L"," + 
-								std::to_wstring(window.bottom) + L"\n";
 
-	fileData[index] = positioning;
-	writeConfig(fileData);
+	m_toWriteBuffer[findLineNumber(L"Position:")] = 
+		std::to_wstring(window.left) + L"," + 
+		std::to_wstring(window.top) + L","  +
+		std::to_wstring(window.right) + L"," + 
+		std::to_wstring(window.bottom) + L"";
 }
 
 std::vector<int> ConfigHandler::getTickers()
 {
-	std::vector<int> watchList;
-	std::vector<std::wstring> fileData = readConfig();
-
-	// Get the position of where it lists the watchlist
-	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Watchlist:\n") - fileData.begin()) + 1;
-	fileData.erase(fileData.begin(), fileData.begin() + pos);
-
-	// Read untill EOF
-	for (std::wstring ticker : fileData) {
-		watchList.emplace_back(stoi(ticker));
+	std::vector<int> watchlist;
+	for (int i = findLineNumber(L"Watchlist:"); i < m_toWriteBuffer.size(); i++){
+		watchlist.emplace_back(stoi(m_toWriteBuffer[i]));
 	}
 
-	return watchList;
+	return watchlist;
 }
 
 void ConfigHandler::updateTickers(std::vector<int> tickerIDs)
 {
-	std::vector<std::wstring> fileData = readConfig();
-
-	// Get the position of where is lists the watchlist
-	ptrdiff_t pos = (std::find(fileData.begin(), fileData.end(), L"Watchlist:\n") - fileData.begin() + 1);
+	int dataLine = findLineNumber(L"Watchlist:");
 
 	// If there are other tickers, remove them
-	if(fileData.size() > pos)
-		fileData.erase(fileData.begin() + pos, fileData.end());
+	if (m_toWriteBuffer.size() > dataLine)
+		m_toWriteBuffer.erase(m_toWriteBuffer.begin() + dataLine, m_toWriteBuffer.end());
 
-	// Replace untill EOF with new tickers
+	// Add all the tickers
 	for (int ticker : tickerIDs) {
-		fileData.emplace_back(std::to_wstring(ticker) + L"\n");
+		m_toWriteBuffer.emplace_back(std::to_wstring(ticker));
 	}
-
-	writeConfig(fileData);
 }
 
 std::vector<std::wstring> ConfigHandler::readConfig()
@@ -172,7 +124,7 @@ std::vector<std::wstring> ConfigHandler::readConfig()
 	fileHandle.open(FILENAME);
 	if (fileHandle.is_open()) {
 		while (std::getline(fileHandle, currentLine)) {
-			fileData.emplace_back(currentLine + L"\n");
+			fileData.emplace_back(currentLine);
 		}
 	}
 	fileHandle.close();
@@ -186,7 +138,7 @@ void ConfigHandler::writeConfig(std::vector<std::wstring> fileData)
 	fileHandle.open(FILENAME);
 	if (fileHandle.is_open()) {
 		for (std::wstring line : fileData) {
-			fileHandle << line;
+			fileHandle << line << std::endl;
 		}
 	}
 	fileHandle.close();

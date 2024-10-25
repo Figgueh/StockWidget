@@ -1,7 +1,7 @@
 #pragma once
+#include <fstream>
 #include <string>
 #include <vector>
-#include <fstream>
 #include <windows.h>
 
 #include "model/ApplicationSettings.h"
@@ -12,6 +12,7 @@ public:
 	inline static const std::string FILENAME = "config.txt";
 
 	ConfigHandler();
+	~ConfigHandler();
 	std::wstring getRefreshToken();
 	void updateRefreshToken(std::string token);
 
@@ -25,6 +26,9 @@ public:
 	void updateTickers(std::vector<int> tickerIDs);
 
 private:
+	std::vector<std::wstring> m_toWriteBuffer;
+
+	int findLineNumber(std::wstring line);
 	std::vector<std::wstring> readConfig();
 	void writeConfig(std::vector<std::wstring> fileData);
 };

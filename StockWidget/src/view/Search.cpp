@@ -1,11 +1,10 @@
 // Search.cpp : Defines the possible actions related to searching for stock tickers.
 //
 
-#include "view/Search.h"
-#include "utility/Toolbox.h"
 #include "controller/RequestHandler.h"
-#include "controller/ConfigHandler.h"
 #include "resource.h"
+#include "utility/Toolbox.h"
+#include "view/Search.h"
 #include "view/Settings.h"
 
 
@@ -22,11 +21,9 @@
 //
 INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	static Questrade::RequestHandler handler;
 	LPTSTR szText{};
 	Questrade::Symbols res;
 	int bufSize = 1024;
-	ConfigHandler configFile;
 	std::vector<int> watchlistID;
 	HWND hwndList, hwndWishList;
 	int items, lbItem, i, pos;
@@ -39,12 +36,12 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 	case  WM_INITDIALOG:
 	{
 		//Get the requesthandler variable from that main application
-		handler = *(Questrade::RequestHandler*)lParam;
+		handlers = *(HandlerPackage*)lParam;
 
-		watchlistID = configFile.getTickers();
+		watchlistID = handlers.configurationHandler->getTickers();
 		for (int id : watchlistID) {
-			Questrade::Quotes quotes = handler.getQuote(id);
-			Questrade::Symbol symbol = handler.findStockSymbolWithQuote(quotes.quotes.front(), id);
+			Questrade::Quotes quotes = handlers.requestHandler.getQuote(id);
+			Questrade::Symbol symbol = handlers.requestHandler.findStockSymbolWithQuote(quotes.quotes.front(), id);
 			int pos = (int)SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_ADDSTRING, id, (LPARAM)toWString(symbol.symbol + " - " + symbol.description).c_str());
 			SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_SETITEMDATA, pos, (LPARAM)id);
 		}
@@ -72,8 +69,8 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 			// Get item data.
 			i = (int)(SendMessage(hwndList, LB_GETITEMDATA, lbItem, 0));
 
-			qs = handler.getQuote(i);
-			ss = handler.findStockSymbolWithQuote(qs.quotes.front(), i);
+			qs = handlers.requestHandler.getQuote(i);
+			ss = handlers.requestHandler.findStockSymbolWithQuote(qs.quotes.front(), i);
 
 			pos = (int)SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_ADDSTRING, lbItem, (LPARAM)toWString(ss.symbol + " - " + ss.description).c_str());
 			SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_SETITEMDATA, pos, i);
@@ -99,14 +96,14 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 					watchlistID.push_back(id);
 			}
 
-			configFile.updateTickers(watchlistID);
+			handlers.configurationHandler->updateTickers(watchlistID);
 			EndDialog(hDlg, LOWORD(wParam));
 			break;
 
 		case IDC_SEARCH:
 			szText = new TCHAR[bufSize];
 			GetDlgItemText(hDlg, IDC_TICKER, szText, bufSize);
-			res = handler.searchTicker(toString(szText));
+			res = handlers.requestHandler.searchTicker(toString(szText));
 
 			for (Questrade::Symbol& current : res.symbols) {
 				if (current.isQuotable && current.isTradable && (current.securityType == "MutualFund" || current.securityType == "Stock")) {

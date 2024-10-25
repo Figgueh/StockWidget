@@ -1,10 +1,10 @@
 #include <atlbase.h>
 #include <exception>
 
+#include "controller/Authentication.h"
 #include "controller/WinHttp.h"
 #include "utility/RequestError.h"
 #include "utility/toolbox.h"
-#include "controller/Authentication.h"
 
 void WinHttp::open()
 {

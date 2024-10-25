@@ -1,7 +1,7 @@
 #include "controller/Authentication.h"
-#include "utility/Toolbox.h"
 #include "controller/WinHttp.h"
 #include "utility/RequestError.h"
+#include "utility/Toolbox.h"
 
 namespace Questrade
 {

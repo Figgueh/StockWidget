@@ -140,6 +140,7 @@
     <ClInclude Include="include\controller\StockUpdater.h" />
     <ClInclude Include="include\controller\ConfigHandler.h" />
     <ClInclude Include="include\api\framework.h" />
+    <ClInclude Include="include\model\HandlerPackage.h" />
     <ClInclude Include="include\utility\json.hpp" />
     <ClInclude Include="include\controller\Authentication.h" />
     <ClInclude Include="include\model\questrade\Quote.h" />

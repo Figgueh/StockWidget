@@ -1,5 +1,4 @@
 #include "view/RefreshToken.h"
-#include "controller/ConfigHandler.h"
 #include "utility/Toolbox.h"
 
 
@@ -17,8 +16,6 @@ INT_PTR WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	LPTSTR szText{};
 	int bufSize = 1024;
-	ConfigHandler updater{};
-	std::string refreshToken;
 
 	switch (message)
 	{
@@ -37,7 +34,6 @@ INT_PTR WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case IDCANCEL:
 			MessageBox(NULL, L"In order to procced this application requires a valid refresh token. \nThe application will now terminate.", L"bad request error", MB_ICONERROR | MB_OK);
-			//SendMessage(hDlg, WM_CLOSE, 0, 0);
 			PostQuitMessage(0);
 			break;
 
@@ -47,8 +43,6 @@ INT_PTR WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 			try {
 				auth = Questrade::Authentication::authenticate(szText);
-				refreshToken = auth.getRefreshToken();
-				updater.updateRefreshToken(refreshToken);
 				EndDialog(hDlg, LOWORD(wParam));
 			}
 			catch (Questrade::AuthenticationError& e) {
