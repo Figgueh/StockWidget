@@ -1,11 +1,19 @@
 #include "controller/ConfigHandler.h"
 #include "utility/Toolbox.h"
 
+/**
+ * Checks to see if the configuration file exists.
+ * @returns if the configuration file exists.
+ */
 bool exists() {
 	struct stat buffer;
 	return (stat(ConfigHandler::FILENAME.c_str(), &buffer) == 0);
 }
 
+/**
+ Prepares the configuration file if it doesn't already exist.
+ If it exists, it reads the configuration file.
+ */
 ConfigHandler::ConfigHandler()
 {
 	if (!exists()) {
@@ -22,12 +30,18 @@ ConfigHandler::ConfigHandler()
 		m_toWriteBuffer = readConfig();
 	}
 }
-
+//writes the data stored in toWriteBuffer to the configuration file.
 ConfigHandler::~ConfigHandler()
 {
-	writeConfig(m_toWriteBuffer);
+	writeConfig();
 }
 
+/**
+ * Looks for a specific line in the toWriteBuffer, then returns the next line.
+ * This function returns the next line as it contains the data for the particular item we are searching for.
+ * @param The line that is being searched for.
+ * @returns The next line which contains the data.
+ */
 int ConfigHandler::findLineNumber(std::wstring line)
 {
 	std::vector<std::wstring>::iterator it = std::find(m_toWriteBuffer.begin(), m_toWriteBuffer.end(), line);
@@ -39,17 +53,28 @@ int ConfigHandler::findLineNumber(std::wstring line)
 		//Throw error
 	}
 }
-
+/**
+ * Reads the toWriteBuffer line for the refresh token.
+ * @returns the refresh token stored in the toWriteBuffer variable
+ */
 std::wstring ConfigHandler::getRefreshToken() 
 {
 	return m_toWriteBuffer[findLineNumber(L"RefreshToken:")];
 }
 
+/**
+ * Updates the toWriteBuffer refresh token line.
+ * @param the new refresh token.
+ */
 void ConfigHandler::updateRefreshToken(std::string token) 
 {
 	m_toWriteBuffer[findLineNumber(L"RefreshToken:")] = toWString(token) + L"";
 }
 
+/**
+ * Reads the toWriteBuffer line for settings, then packages data into an ApplicationSettings struct
+ * @returns ApplicationSettings stored in the toWriteBuffer
+ */
 ApplicationSettings ConfigHandler::getSettings()
 {
 	std::wstring data = m_toWriteBuffer[findLineNumber(L"Settings:")];
@@ -57,11 +82,19 @@ ApplicationSettings ConfigHandler::getSettings()
 	return ApplicationSettings(dataSplit[0], dataSplit[1]);
 }
 
+/**
+ * Updates the toWriteBuffer settings line.
+ * @param the settings that will be stored in the toWriteBuffer
+ */
 void ConfigHandler::updateSettings(ApplicationSettings settings)
 {
 	m_toWriteBuffer[findLineNumber(L"Settings:")] = std::to_wstring(settings.alwaysOnTop) + L"," + std::to_wstring(settings.rememberLocation) + L"";
 }
 
+/**
+ * Reads the toWriteBuffer to fetch the position coordinates.
+ * @returns the saved position coordinates 
+ */
 WINDOWPLACEMENT ConfigHandler::getPosition()
 {
 	std::wstring data = m_toWriteBuffer[findLineNumber(L"Position:")];
@@ -80,6 +113,10 @@ WINDOWPLACEMENT ConfigHandler::getPosition()
 	return windowPos;
 }
 
+/**
+ * Updates the toWriteBuffer position line.
+ * @param the position coordinates that will be stored in the toWriteBuffer
+ */
 void ConfigHandler::updatePosition(WINDOWPLACEMENT& pos)
 {
 	RECT window = pos.rcNormalPosition;
@@ -88,9 +125,13 @@ void ConfigHandler::updatePosition(WINDOWPLACEMENT& pos)
 		std::to_wstring(window.left) + L"," + 
 		std::to_wstring(window.top) + L","  +
 		std::to_wstring(window.right) + L"," + 
-		std::to_wstring(window.bottom) + L"";
+		std::to_wstring(window.bottom);
 }
 
+/**
+ * Reads the toWriteBuffer to fetch the tickers.
+ * @returns vector of all the tickers ID for the watch list.
+ */
 std::vector<int> ConfigHandler::getTickers()
 {
 	std::vector<int> watchlist;
@@ -101,6 +142,10 @@ std::vector<int> ConfigHandler::getTickers()
 	return watchlist;
 }
 
+/**
+ * Updates the toWriteBuffer tickers.
+ * @param the tickers that will be stored in the toWriteBuffer
+ */
 void ConfigHandler::updateTickers(std::vector<int> tickerIDs)
 {
 	int dataLine = findLineNumber(L"Watchlist:");
@@ -115,6 +160,7 @@ void ConfigHandler::updateTickers(std::vector<int> tickerIDs)
 	}
 }
 
+// Reads the designated configuration file.
 std::vector<std::wstring> ConfigHandler::readConfig()
 {
 	std::vector<std::wstring> fileData;
@@ -132,12 +178,13 @@ std::vector<std::wstring> ConfigHandler::readConfig()
 	return fileData;
 }
 
-void ConfigHandler::writeConfig(std::vector<std::wstring> fileData)
+// Writes all the data in toWriteBuffer to the designated configuration file.
+void ConfigHandler::writeConfig()
 {
 	std::wofstream fileHandle{};
 	fileHandle.open(FILENAME);
 	if (fileHandle.is_open()) {
-		for (std::wstring line : fileData) {
+		for (std::wstring line : m_toWriteBuffer) {
 			fileHandle << line << std::endl;
 		}
 	}

@@ -30,6 +30,6 @@ private:
 
 	int findLineNumber(std::wstring line);
 	std::vector<std::wstring> readConfig();
-	void writeConfig(std::vector<std::wstring> fileData);
+	void writeConfig();
 };
 
