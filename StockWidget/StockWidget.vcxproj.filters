@@ -93,7 +93,10 @@
     <ClInclude Include="include\view\Settings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\model\HandlerPackage.h">
+    <ClInclude Include="include\model\questrade\QAuth.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\StockListing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -135,6 +138,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\model\questrade\Symbol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\questrade\QAuth.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

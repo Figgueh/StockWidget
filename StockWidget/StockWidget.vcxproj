@@ -140,7 +140,8 @@
     <ClInclude Include="include\controller\StockUpdater.h" />
     <ClInclude Include="include\controller\ConfigHandler.h" />
     <ClInclude Include="include\api\framework.h" />
-    <ClInclude Include="include\model\HandlerPackage.h" />
+    <ClInclude Include="include\model\questrade\QAuth.h" />
+    <ClInclude Include="include\model\StockListing.h" />
     <ClInclude Include="include\utility\json.hpp" />
     <ClInclude Include="include\controller\Authentication.h" />
     <ClInclude Include="include\model\questrade\Quote.h" />
@@ -157,6 +158,7 @@
     <ClInclude Include="include\controller\WinHttp.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\model\questrade\QAuth.cpp" />
     <ClCompile Include="src\view\Settings.cpp" />
     <ClCompile Include="include\model\ApplicationSettings.h" />
     <ClCompile Include="src\controller\Authentication.cpp" />

@@ -10,8 +10,7 @@ namespace Questrade
 	class RequestHandler
 	{
 	public:
-		RequestHandler() = default;
-		RequestHandler(Authentication& auth);
+		RequestHandler();
 		std::wstring handleRequest(std::wstring path, std::map<std::string, std::string> headers);
 		Questrade::Quotes getQuote(int stockId);
 		Questrade::Quotes getQuotes(std::vector<int> stockIds);
@@ -21,7 +20,7 @@ namespace Questrade
 	private:
 		std::wstring m_path;
 		std::map<std::string, std::string> m_headers;
-		Authentication m_auth;
+		Authentication* m_auth;
 		WinHttp m_connection;
 	};
 

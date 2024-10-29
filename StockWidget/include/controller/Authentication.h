@@ -3,31 +3,25 @@
 #include <exception>
 
 #include "utility/json.hpp"
+#include <model/questrade/QAuth.h>
 
 namespace Questrade
 {
 	class Authentication
 	{
 	public:
-		Authentication();
-		static Authentication const authenticate(const std::wstring& refreshToken);
+		Authentication(const Authentication& obj) = delete;
+		static Authentication* getInstance();
 
-		std::string getTokenType() const;
-		std::string getAccessToken() const;
-		std::string getRefreshToken() const;
-		std::string getApiServer() const;
+		void const authenticate(const std::wstring& refreshToken);
 
-		friend void to_json(nlohmann::json& j, const Authentication& p);
-		friend void from_json(const nlohmann::json& j, Authentication& p);
-
+		QAuth getData();
 		static inline bool m_isAuthenticated = false;
-
 	private:
-		std::string m_tokenType;
-		std::string m_accessToken;
-		int m_expiresIn;
-		std::string m_refreshToken;
-		std::string m_apiServer;
+		Authentication();
+
+		inline static Authentication* m_instance;
+		QAuth m_authenticationData;
 	};
 
 
@@ -39,7 +33,6 @@ namespace Questrade
 	};
 }
 
-extern Questrade::Authentication auth;
 
 
 

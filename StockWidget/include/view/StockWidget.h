@@ -8,26 +8,36 @@
 #include "controller/ConfigHandler.h"
 #include "resource.h"
 #include "model/ApplicationSettings.h"
+#include "model/StockListing.h"
 
-struct stockListing
-{
-	HWND ticker;
-	HWND price;
-	double lastPrice;
-};
+#define MAX_LOADSTRING 100
 
-inline HandlerPackage handlerPackage{};
-//inline Questrade::RequestHandler handle;
+// Global Variables:
+HINSTANCE hInst;                                // current instance
+WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
+WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
+COLORREF backgroundColor = RGB(255, 240, 255);
+
+// Windows handles:
+INT_PTR hwndStocks = NULL;
+INT_PTR hwndSettings = NULL;
+HWND hWnd;
+
+// Variables:
 inline ApplicationSettings settings;
 inline std::vector<int> watchlist;
-inline std::vector<stockListing> priceLabels;
+inline std::vector<StockListing> priceLabels;
+inline Questrade::Authentication* authentication;
+ConfigHandler configuration;
+Questrade::RequestHandler makeRequest;
+
+// Functions
+inline void registerHotKeys();
+inline void authenticate();
+inline void loadUserSettings();
+inline void prepareWatchlist();
 void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes);
-//void startWatching(HWND hwnd);
 
-//inline ConfigHandler configuration{};
-ConfigHandler handle;
+inline void applyWatchlistUpdates();
 
-
-//std::mutex mymutex;
-//std::condition_variable mycond;
-//bool running = true;
+inline void applyColorEffect();

@@ -11,20 +11,6 @@
 #include "view/StockWidget.h"
 
 #include "controller/StockUpdater.h"
-#include <model/HandlerPackage.h>
-
-
-#define MAX_LOADSTRING 100
-
-// Global Variables:
-HINSTANCE hInst;                                // current instance
-WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
-WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
-Questrade::Authentication auth;
-COLORREF backgroundColor = RGB(255, 240, 255);
-
-INT_PTR hwndStocks = NULL;  // Window handle of dialog box 
-INT_PTR hwndSettings = NULL;
 
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
@@ -113,7 +99,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 {
 	hInst = hInstance; // Store instance handle in our global variable
 
-	HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_POPUP | WS_SYSMENU | WS_EX_LAYERED,
+	hWnd = CreateWindowW(szWindowClass, szTitle, WS_POPUP | WS_SYSMENU | WS_EX_LAYERED,
 		0, 0, 0, 0, nullptr, nullptr, hInstance, nullptr);
 
 	if (!hWnd)
@@ -123,71 +109,10 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
 	ShowWindow(hWnd, nCmdShow);
 
-	RegisterHotKey(hWnd, HOTKEY_SETTINGS, MOD_CONTROL, 0x53);	// Ctrl + s
-	RegisterHotKey(hWnd, HOTKEY_STOCKS, MOD_ALT, 0x53);			// Alt + s
-	RegisterHotKey(hWnd, HOTKEY_CLOSE, MOD_ALT, VK_ESCAPE);		//esc
-
-
-	std::string refreshToken;
-	handlerPackage.configurationHandler = &handle;
-
-	try {
-		auth = Questrade::Authentication::authenticate(handlerPackage.configurationHandler->getRefreshToken());
-		refreshToken = auth.getRefreshToken();
-
-	}
-	catch (Questrade::AuthenticationError& e) {
-		std::string error = std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"Authentication error", MB_ICONERROR | MB_OK);
-		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_REFRESHTOKEN), hWnd, WndRefreshProc, (LPARAM)&auth);
-		refreshToken = auth.getRefreshToken();
-
-	}
-	catch (RequestError& e) {
-		std::string error = std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"Bad request error", MB_ICONERROR | MB_OK);
-	}
-	catch (nlohmann::json::exception& e) {
-		refreshToken = auth.getRefreshToken();
-
-		handlerPackage.configurationHandler->updateRefreshToken(refreshToken);
-		std::string error = "ERROR:" + std::string(e.what());
-	}
-
-	handlerPackage.configurationHandler->updateRefreshToken(refreshToken);
-	handlerPackage.requestHandler = Questrade::RequestHandler(auth);
-
-	// Get the settings of the user
-	settings = handlerPackage.configurationHandler->getSettings();
-
-	// Get the list of ids thats in the watchlist
-	watchlist = handlerPackage.configurationHandler->getTickers();
-
-	// If there isn't anything in the watchlist then open the dialog to allow them to update it
-	if (watchlist.empty()) {
-		//HandlerPackage package = {handle, &configuration};
-		MessageBox(NULL, L"The application couldn't find any stocks for the watchlist.", L"watchlist parse error", MB_ICONERROR | MB_OK);
-		int result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handlerPackage);
-
-		// If the save was sucessful update the watchlist.
-		if (result == IDSAVE)
-			watchlist = handlerPackage.configurationHandler->getTickers();
-	}
-
-	// Update the length of the window
-	::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOMOVE);
-
-	// Load the previously saved location of the window
-	if (settings.rememberLocation) {
-		WINDOWPLACEMENT placement = handlerPackage.configurationHandler->getPosition();
-		SetWindowPlacement(hWnd, &placement);
-	}
-
-	// Apply size changes
-	UpdateWindow(hWnd);
-
-	if (priceLabels.empty())
-		initializeWatchlist(std::ref(hWnd), handlerPackage.requestHandler.getQuotes(watchlist));
+	registerHotKeys();
+	authenticate();
+	loadUserSettings();
+	prepareWatchlist();
 
 	// Start the updater thread
 	StockWatch::updater = std::thread(StockWatch::startWatching, std::ref(hWnd));
@@ -214,10 +139,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hWnd, &ps);
 
-		//// Makes the main window transparent
-		//SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
-		//SetLayeredWindowAttributes(hWnd, backgroundColor, 0, LWA_COLORKEY);
-
 		EndPaint(hWnd, &ps);
 	}
 	break;
@@ -226,32 +147,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case HOTKEY_SETTINGS:
 		{
-			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, WndSettingProc, (LPARAM)handlerPackage.configurationHandler);
+			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, WndSettingProc, (LPARAM)&configuration);
 		}
 		break;
 		case HOTKEY_STOCKS:
 		{
-			hwndStocks = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&handlerPackage);
+			hwndStocks = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&configuration);
 
 			if (hwndStocks == IDSAVE) {
-				StockWatch::stopWatching();
-				OutputDebugStringW(L"Updater closed\n");
-
-				// Remove old labels
-				for (stockListing& listings : priceLabels) {
-					DestroyWindow(listings.ticker);
-					DestroyWindow(listings.price);
-				}
-				priceLabels.clear();
-
-				// Reinitialize
-				StockWatch::running = true;
-				watchlist = handlerPackage.configurationHandler->getTickers();
-				::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
-				initializeWatchlist(hWnd, handlerPackage.requestHandler.getQuotes(watchlist));
-				StockWatch::updater = std::thread(StockWatch::startWatching, std::ref(hWnd));
-
-				UpdateWindow(hWnd);
+				applyWatchlistUpdates();
 			}
 		}
 		break;
@@ -269,7 +173,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CTLCOLORSTATIC:
 	{
 		// Look for the price lables
-		std::vector<stockListing>::iterator it = std::find_if(priceLabels.begin(), priceLabels.end(), [&](const stockListing& listing) {return listing.price == (HWND)lParam; });
+		std::vector<StockListing>::iterator it = std::find_if(priceLabels.begin(), priceLabels.end(), [&](const StockListing& listing) {return listing.price == (HWND)lParam; });
 		HDC hdcStatic = (HDC)wParam;
 		COLORREF textColour = RGB(255, 255, 255);
 
@@ -322,7 +226,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			GetWindowPlacement(hWnd, &placement);
 
 			// Save it
-			handlerPackage.configurationHandler->updatePosition(placement);
+			configuration.updatePosition(placement);
 		}
 		PostQuitMessage(0);
 	}
@@ -376,7 +280,110 @@ void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes)
 		// Create two lables, one with the ticker and other with the price
 		HWND ticker = CreateWindowEx(0, L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
 		HWND price = CreateWindowEx(0, L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
-		priceLabels.emplace_back(stockListing{ ticker, price, quote.askPrice });
+		priceLabels.emplace_back(StockListing{ ticker, price, quote.askPrice });
 	}
 	UpdateWindow(hWnd);
+}
+
+inline void registerHotKeys()
+{
+	RegisterHotKey(hWnd, HOTKEY_SETTINGS, MOD_CONTROL, 0x53);	// Ctrl + s
+	RegisterHotKey(hWnd, HOTKEY_STOCKS, MOD_ALT, 0x53);			// Alt + s
+	RegisterHotKey(hWnd, HOTKEY_CLOSE, MOD_ALT, VK_ESCAPE);		//esc
+
+}
+
+inline void authenticate()
+{
+	std::string refreshToken;
+
+	authentication = Questrade::Authentication::getInstance();
+
+	try {
+		authentication->authenticate(configuration.getRefreshToken());
+		refreshToken = authentication->getData().getRefreshToken();
+
+	}
+	catch (Questrade::AuthenticationError& e) {
+		std::string error = std::string(e.what());
+		MessageBox(NULL, toWString(error).c_str(), L"Authentication error", MB_ICONERROR | MB_OK);
+		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_REFRESHTOKEN), hWnd, WndRefreshProc, (LPARAM)nullptr);
+		refreshToken = authentication->getData().getRefreshToken();
+
+	}
+	catch (RequestError& e) {
+		std::string error = std::string(e.what());
+		MessageBox(NULL, toWString(error).c_str(), L"Bad request error", MB_ICONERROR | MB_OK);
+	}
+	catch (nlohmann::json::exception& e) {
+		refreshToken = authentication->getData().getRefreshToken();
+
+		std::string error = "ERROR:" + std::string(e.what());
+	}
+
+	configuration.updateRefreshToken(refreshToken);
+
+}
+
+inline void loadUserSettings()
+{
+	// Get the settings of the user
+	settings = configuration.getSettings();
+
+	// Get the list of ids thats in the watchlist
+	watchlist = configuration.getTickers();
+}
+
+inline void prepareWatchlist()
+{
+
+	// If there isn't anything in the watchlist then open the dialog to allow them to update it
+	if (watchlist.empty()) {
+		//HandlerPackage package = {handle, &configuration};
+		MessageBox(NULL, L"The application couldn't find any stocks for the watchlist.", L"watchlist parse error", MB_ICONERROR | MB_OK);
+		int result = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&configuration);
+
+		// If the save was sucessful update the watchlist.
+		if (result == IDSAVE)
+			watchlist = configuration.getTickers();
+	}
+
+	// Update the length of the window
+	::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW | SWP_NOMOVE);
+
+	// Load the previously saved location of the window
+	if (settings.rememberLocation) {
+		WINDOWPLACEMENT placement = configuration.getPosition();
+		SetWindowPlacement(hWnd, &placement);
+	}
+
+	// Apply size changes
+	UpdateWindow(hWnd);
+
+	if (priceLabels.empty())
+		initializeWatchlist(std::ref(hWnd), makeRequest.getQuotes(watchlist));
+
+}
+
+inline void applyWatchlistUpdates()
+{
+	StockWatch::stopWatching();
+	OutputDebugStringW(L"Updater closed\n");
+
+	// Remove old labels
+	for (StockListing& listings : priceLabels) {
+		DestroyWindow(listings.ticker);
+		DestroyWindow(listings.price);
+	}
+	priceLabels.clear();
+
+	// Reinitialize
+	StockWatch::running = true;
+	watchlist = configuration.getTickers();
+	::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
+	initializeWatchlist(hWnd, makeRequest.getQuotes(watchlist));
+	StockWatch::updater = std::thread(StockWatch::startWatching, std::ref(hWnd));
+
+	UpdateWindow(hWnd);
+
 }

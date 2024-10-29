@@ -2,15 +2,15 @@
 #include "model/questrade/Quote.h"
 #include "utility/Toolbox.h"
 
-Questrade::RequestHandler::RequestHandler(Authentication& auth)
+Questrade::RequestHandler::RequestHandler()
 {
-	this->m_auth = auth;
+	this->m_auth = Questrade::Authentication::getInstance();
 }
 
 std::wstring Questrade::RequestHandler::handleRequest(std::wstring path, std::map<std::string, std::string> headers)
 {
 	m_connection.open();
-	m_connection.connect(WinHttp::stripHost(m_auth.getApiServer()).c_str());
+	m_connection.connect(WinHttp::stripHost(m_auth->getData().getApiServer()).c_str());
 	m_connection.requestHandler(L"GET", path.c_str());
 	m_connection.addHeaders(headers);
 	m_connection.sendRequest();
@@ -21,8 +21,8 @@ Questrade::Quotes Questrade::RequestHandler::getQuote(int stockId)
 {		
 	m_path = toWString("/v1/markets/quotes/" + std::to_string(stockId));
 	
-	m_headers.emplace("Host", m_auth.getApiServer());
-	m_headers.emplace("Authorization", m_auth.getTokenType() + " " + m_auth.getAccessToken());
+	m_headers.emplace("Host", m_auth->getData().getApiServer());
+	m_headers.emplace("Authorization", m_auth->getData().getTokenType() + " " + m_auth->getData().getAccessToken());
 
 	try {
 		std::wstring res = handleRequest(m_path, m_headers);
@@ -51,8 +51,8 @@ Questrade::Quotes Questrade::RequestHandler::getQuotes(std::vector<int> stockIds
 
 	m_path.erase(m_path.end() - 1, m_path.end());
 
-	m_headers.emplace("Host", m_auth.getApiServer());
-	m_headers.emplace("Authorization", m_auth.getTokenType() + " " + m_auth.getAccessToken());
+	m_headers.emplace("Host", m_auth->getData().getApiServer());
+	m_headers.emplace("Authorization", m_auth->getData().getTokenType() + " " + m_auth->getData().getAccessToken());
 
 	try {
 		std::wstring res = handleRequest(m_path, m_headers);
@@ -74,8 +74,8 @@ Questrade::Symbols Questrade::RequestHandler::searchTicker(std::string ticker)
 {
 	m_path = toWString("/v1/symbols/search?prefix=" + ticker);
 
-	m_headers.emplace("Host", m_auth.getApiServer());
-	m_headers.emplace("Authorization", m_auth.getTokenType() + " " + m_auth.getAccessToken());
+	m_headers.emplace("Host", m_auth->getData().getApiServer());
+	m_headers.emplace("Authorization", m_auth->getData().getTokenType() + " " + m_auth->getData().getAccessToken());
 
 	try {
 		std::wstring res = handleRequest(m_path, m_headers);

@@ -7,4 +7,4 @@
 
 
 INT_PTR CALLBACK WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-
+inline Questrade::Authentication* auth;

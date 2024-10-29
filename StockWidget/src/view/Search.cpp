@@ -21,32 +21,14 @@
 //
 INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	LPTSTR szText{};
-	Questrade::Symbols res;
-	int bufSize = 1024;
-	std::vector<int> watchlistID;
-	HWND hwndList, hwndWishList;
-	int items, lbItem, i, pos;
-	std::string text;
-	Questrade::Quotes qs;
-	Questrade::Symbol ss;
 
 	switch (message)
 	{
 	case  WM_INITDIALOG:
 	{
-		//Get the requesthandler variable from that main application
-		handlers = *(HandlerPackage*)lParam;
-
-		watchlistID = handlers.configurationHandler->getTickers();
-		for (int id : watchlistID) {
-			Questrade::Quotes quotes = handlers.requestHandler.getQuote(id);
-			Questrade::Symbol symbol = handlers.requestHandler.findStockSymbolWithQuote(quotes.quotes.front(), id);
-			int pos = (int)SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_ADDSTRING, id, (LPARAM)toWString(symbol.symbol + " - " + symbol.description).c_str());
-			SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_SETITEMDATA, pos, (LPARAM)id);
-		}
-
-
+		//Get the config handler variable from that main application
+		conf = (ConfigHandler*)lParam;
+		loadCurrentWatchlist(hDlg);
 	}
 	break;
 	case WM_COMMAND:
@@ -60,57 +42,23 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 		case IDCANCEL:
 			EndDialog(hDlg, LOWORD(wParam));
 			break;
+
 		case IDC_ADDWISHLIST:
-			hwndList = GetDlgItem(hDlg, IDC_TICKERLIST);
-
-			// Get selected index.
-			lbItem = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
-
-			// Get item data.
-			i = (int)(SendMessage(hwndList, LB_GETITEMDATA, lbItem, 0));
-
-			qs = handlers.requestHandler.getQuote(i);
-			ss = handlers.requestHandler.findStockSymbolWithQuote(qs.quotes.front(), i);
-
-			pos = (int)SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_ADDSTRING, lbItem, (LPARAM)toWString(ss.symbol + " - " + ss.description).c_str());
-			SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_SETITEMDATA, pos, i);
-
+			addSelectedToWatchlist(hDlg);
 			break;
+
 		case IDC_REMOVE:
-			// Get the selected index.
-			hwndList = GetDlgItem(hDlg, IDC_WATCHLIST);
-			lbItem = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
-
-			// Remove the item
-			SendMessage(hwndList, LB_DELETESTRING, lbItem, 0);
-
+			removeSelectedFromWatchlist(hDlg);
 			break;
+
 		case IDSAVE:
-			hwndWishList = GetDlgItem(hDlg, IDC_WATCHLIST);
-			items = (int)SendMessage(hwndWishList, LB_GETCOUNT, 0, 0);
-			watchlistID = std::vector<int>();
+			updateWatchlist(hDlg);
 
-			for (int cur = 0; cur <= items; cur++) {
-				int id = (int)(SendMessage(hwndWishList, LB_GETITEMDATA, cur, 0));
-				if (id != -1)
-					watchlistID.push_back(id);
-			}
-
-			handlers.configurationHandler->updateTickers(watchlistID);
 			EndDialog(hDlg, LOWORD(wParam));
 			break;
 
 		case IDC_SEARCH:
-			szText = new TCHAR[bufSize];
-			GetDlgItemText(hDlg, IDC_TICKER, szText, bufSize);
-			res = handlers.requestHandler.searchTicker(toString(szText));
-
-			for (Questrade::Symbol& current : res.symbols) {
-				if (current.isQuotable && current.isTradable && (current.securityType == "MutualFund" || current.securityType == "Stock")) {
-					int pos = (int)SendDlgItemMessage(hDlg, IDC_TICKERLIST, LB_ADDSTRING, current.symbolId, (LPARAM)toWString(current.symbol + " - " + current.description).c_str());
-					SendDlgItemMessage(hDlg, IDC_TICKERLIST, LB_SETITEMDATA, pos, (LPARAM)current.symbolId);
-				}
-			}
+			displaySearchResults(hDlg);
 			break;
 
 		case IDC_TICKERLIST:
@@ -122,10 +70,10 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 				HWND hwndList = GetDlgItem(hDlg, IDC_TICKERLIST);
 
 				// Get selected index.
-				lbItem = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
+				int lbItem = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
 
 				// Get item data.
-				i = (int)(SendMessage(hwndList, LB_GETITEMDATA, lbItem, 0));
+				(int)(SendMessage(hwndList, LB_GETITEMDATA, lbItem, 0));
 
 				return TRUE;
 			}
@@ -150,8 +98,86 @@ INT_PTR CALLBACK WndSearchProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lP
 	default:
 		return (INT_PTR)FALSE;
 	}
-	delete[] szText;
 
 
 	return 0;
+}
+
+inline void loadCurrentWatchlist(HWND hDlg)
+{
+	for (int id : conf->getTickers()) {
+		Questrade::Quotes quotes = api.getQuote(id);
+		Questrade::Symbol symbol = api.findStockSymbolWithQuote(quotes.quotes.front(), id);
+		int pos = (int)SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_ADDSTRING, id, (LPARAM)toWString(symbol.symbol + " - " + symbol.description).c_str());
+		SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_SETITEMDATA, pos, (LPARAM)id);
+	}
+
+}
+
+inline void addSelectedToWatchlist(HWND hDlg)
+{
+	HWND hwndQuerrylist = GetDlgItem(hDlg, IDC_TICKERLIST);
+	Questrade::Quotes quote;
+	Questrade::Symbol symbol;
+	int selectedIndex, selectedData, newEntry;
+
+	// Get selected index.
+	selectedIndex = (int)SendMessage(hwndQuerrylist, LB_GETCURSEL, 0, 0);
+
+	// Get item data.
+	selectedData = (int)(SendMessage(hwndQuerrylist, LB_GETITEMDATA, selectedIndex, 0));
+
+	quote = api.getQuote(selectedData);
+	symbol = api.findStockSymbolWithQuote(quote.quotes.front(), selectedData);
+
+	newEntry = (int)SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_ADDSTRING, selectedIndex, (LPARAM)toWString(symbol.symbol + " - " + symbol.description).c_str());
+	SendDlgItemMessage(hDlg, IDC_WATCHLIST, LB_SETITEMDATA, newEntry, selectedData);
+}
+
+inline void removeSelectedFromWatchlist(HWND hDlg)
+{
+	// Get the selected index.
+	HWND hwndList = GetDlgItem(hDlg, IDC_WATCHLIST);
+	int index = (int)SendMessage(hwndList, LB_GETCURSEL, 0, 0);
+
+	// Remove the item
+	SendMessage(hwndList, LB_DELETESTRING, index, 0);
+}
+
+inline void updateWatchlist(HWND hDlg)
+{
+	HWND hwndWatchlist = GetDlgItem(hDlg, IDC_WATCHLIST);
+	int items = (int)SendMessage(hwndWatchlist, LB_GETCOUNT, 0, 0);
+	std::vector<int> watchlist = std::vector<int>();
+
+	for (int cur = 0; cur <= items; cur++) {
+		int id = (int)(SendMessage(hwndWatchlist, LB_GETITEMDATA, cur, 0));
+		if (id != -1)
+			watchlist.push_back(id);
+	}
+
+	conf->updateTickers(watchlist);
+}
+
+inline void displaySearchResults(HWND hDlg)
+{
+	LPTSTR szText{};
+	Questrade::Symbols res;
+	int bufSize = 1024;
+
+	szText = new TCHAR[bufSize];
+	GetDlgItemText(hDlg, IDC_TICKER, szText, bufSize);
+	res = api.searchTicker(toString(szText));
+
+	// clear the listbox.
+	SendDlgItemMessage(hDlg, IDC_TICKERLIST, LB_RESETCONTENT, 0, 0);
+
+	for (Questrade::Symbol& current : res.symbols) {
+		if (current.isQuotable && current.isTradable && (current.securityType == "MutualFund" || current.securityType == "Stock")) {
+			int pos = (int)SendDlgItemMessage(hDlg, IDC_TICKERLIST, LB_ADDSTRING, current.symbolId, (LPARAM)toWString(current.symbol + " - " + current.description).c_str());
+			SendDlgItemMessage(hDlg, IDC_TICKERLIST, LB_SETITEMDATA, pos, (LPARAM)current.symbolId);
+		}
+	}
+	delete[] szText;
+
 }

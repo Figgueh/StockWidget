@@ -21,9 +21,10 @@ INT_PTR WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	{
 
 	case  WM_INITDIALOG:
-		//Get the requesthandler variable from that main application
-		auth = *(Questrade::Authentication*)lParam;
-		break;
+	{
+		auth = Questrade::Authentication::getInstance();
+	}
+	break;
 
 	case WM_COMMAND:
 	{
@@ -42,7 +43,7 @@ INT_PTR WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 			GetDlgItemText(hDlg, IDC_EDIT, szText, bufSize);
 
 			try {
-				auth = Questrade::Authentication::authenticate(szText);
+				auth->authenticate(szText);
 				EndDialog(hDlg, LOWORD(wParam));
 			}
 			catch (Questrade::AuthenticationError& e) {

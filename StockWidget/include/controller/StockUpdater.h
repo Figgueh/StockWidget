@@ -3,6 +3,7 @@
 #include <mutex>
 
 #include "api/framework.h"
+#include "model/StockListing.h"
 
 namespace StockWatch
 {
@@ -18,12 +19,12 @@ namespace StockWatch
 		while (running)
 		{
 			// Get their quotes
-			Questrade::Quotes watchlistQuotes = handlerPackage.requestHandler.getQuotes(watchlist);
+			Questrade::Quotes watchlistQuotes = makeRequest.getQuotes(watchlist);
 
 			for (Questrade::Quote& quote : watchlistQuotes.quotes)
 			{
 
-				for (stockListing& listing : priceLabels)
+				for (StockListing& listing : priceLabels)
 				{
 					// Get the text of the ticker
 					int length = GetWindowTextLength(listing.ticker);
