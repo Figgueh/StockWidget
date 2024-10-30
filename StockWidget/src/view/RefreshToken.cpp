@@ -47,8 +47,8 @@ INT_PTR WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 				EndDialog(hDlg, LOWORD(wParam));
 			}
 			catch (Questrade::AuthenticationError& e) {
-				std::string error = std::string(e.what());
-				MessageBox(NULL, toWString(error).c_str(), L"bad request error", MB_ICONERROR | MB_OK);
+				std::string error = e.what();
+				MessageBox(NULL, toWString(error).c_str(), L"Invalid refresh token.", MB_ICONERROR | MB_OK);
 			}
 			break;
 

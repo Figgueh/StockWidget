@@ -15,7 +15,7 @@ namespace Questrade
 
 		void const authenticate(const std::wstring& refreshToken);
 
-		QAuth getData();
+		QAuth getAuth();
 		static inline bool m_isAuthenticated = false;
 	private:
 		Authentication();

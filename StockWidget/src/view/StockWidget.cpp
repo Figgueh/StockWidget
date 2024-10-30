@@ -301,14 +301,14 @@ inline void authenticate()
 
 	try {
 		authentication->authenticate(configuration.getRefreshToken());
-		refreshToken = authentication->getData().getRefreshToken();
+		refreshToken = authentication->getAuth().getRefreshToken();
 
 	}
 	catch (Questrade::AuthenticationError& e) {
 		std::string error = std::string(e.what());
 		MessageBox(NULL, toWString(error).c_str(), L"Authentication error", MB_ICONERROR | MB_OK);
 		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_REFRESHTOKEN), hWnd, WndRefreshProc, (LPARAM)nullptr);
-		refreshToken = authentication->getData().getRefreshToken();
+		refreshToken = authentication->getAuth().getRefreshToken();
 
 	}
 	catch (RequestError& e) {
@@ -316,7 +316,7 @@ inline void authenticate()
 		MessageBox(NULL, toWString(error).c_str(), L"Bad request error", MB_ICONERROR | MB_OK);
 	}
 	catch (nlohmann::json::exception& e) {
-		refreshToken = authentication->getData().getRefreshToken();
+		refreshToken = authentication->getAuth().getRefreshToken();
 
 		std::string error = "ERROR:" + std::string(e.what());
 	}

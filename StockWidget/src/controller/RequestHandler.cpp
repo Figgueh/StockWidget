@@ -1,5 +1,6 @@
 #include "controller/RequestHandler.h"
 #include "model/questrade/Quote.h"
+#include "utility/RequestError.h"
 #include "utility/Toolbox.h"
 
 Questrade::RequestHandler::RequestHandler()
@@ -10,7 +11,7 @@ Questrade::RequestHandler::RequestHandler()
 std::wstring Questrade::RequestHandler::handleRequest(std::wstring path, std::map<std::string, std::string> headers)
 {
 	m_connection.open();
-	m_connection.connect(WinHttp::stripHost(m_auth->getData().getApiServer()).c_str());
+	m_connection.connect(WinHttp::stripHost(m_auth->getAuth().getApiServer()).c_str());
 	m_connection.requestHandler(L"GET", path.c_str());
 	m_connection.addHeaders(headers);
 	m_connection.sendRequest();
@@ -21,14 +22,14 @@ Questrade::Quotes Questrade::RequestHandler::getQuote(int stockId)
 {		
 	m_path = toWString("/v1/markets/quotes/" + std::to_string(stockId));
 	
-	m_headers.emplace("Host", m_auth->getData().getApiServer());
-	m_headers.emplace("Authorization", m_auth->getData().getTokenType() + " " + m_auth->getData().getAccessToken());
+	m_headers.emplace("Host", m_auth->getAuth().getApiServer());
+	m_headers.emplace("Authorization", m_auth->getAuth().getTokenType() + " " + m_auth->getAuth().getAccessToken());
 
 	try {
 		std::wstring res = handleRequest(m_path, m_headers);
 
 		if (res.compare(L"Bad Request") == 0)
-			throw Questrade::RequestError();
+			throw RequestError();
 
 		nlohmann::json result = nlohmann::json::parse(toString(res));
 		return result.template get<Questrade::Quotes>();
@@ -51,14 +52,14 @@ Questrade::Quotes Questrade::RequestHandler::getQuotes(std::vector<int> stockIds
 
 	m_path.erase(m_path.end() - 1, m_path.end());
 
-	m_headers.emplace("Host", m_auth->getData().getApiServer());
-	m_headers.emplace("Authorization", m_auth->getData().getTokenType() + " " + m_auth->getData().getAccessToken());
+	m_headers.emplace("Host", m_auth->getAuth().getApiServer());
+	m_headers.emplace("Authorization", m_auth->getAuth().getTokenType() + " " + m_auth->getAuth().getAccessToken());
 
 	try {
 		std::wstring res = handleRequest(m_path, m_headers);
 
 		if (res.compare(L"Bad Request") == 0)
-			throw Questrade::RequestError();
+			throw RequestError();
 
 		nlohmann::json result = nlohmann::json::parse(toString(res));
 		return result.template get<Questrade::Quotes>();
@@ -74,14 +75,14 @@ Questrade::Symbols Questrade::RequestHandler::searchTicker(std::string ticker)
 {
 	m_path = toWString("/v1/symbols/search?prefix=" + ticker);
 
-	m_headers.emplace("Host", m_auth->getData().getApiServer());
-	m_headers.emplace("Authorization", m_auth->getData().getTokenType() + " " + m_auth->getData().getAccessToken());
+	m_headers.emplace("Host", m_auth->getAuth().getApiServer());
+	m_headers.emplace("Authorization", m_auth->getAuth().getTokenType() + " " + m_auth->getAuth().getAccessToken());
 
 	try {
 		std::wstring res = handleRequest(m_path, m_headers);
 
 		if (res.compare(L"Bad Request") == 0)
-			throw Questrade::RequestError();
+			throw RequestError();
 
 		nlohmann::json result = nlohmann::json::parse(toString(res));
 		return result.template get<Questrade::Symbols>();
@@ -103,9 +104,4 @@ Questrade::Symbol Questrade::RequestHandler::findStockSymbolWithQuote(const Ques
 	}
 
 	return {};
-}
-
-const char* Questrade::RequestError::what() const throw()
-{
-	return "A mistake was made with the sent request";
 }

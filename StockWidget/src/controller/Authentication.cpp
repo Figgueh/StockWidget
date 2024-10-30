@@ -5,7 +5,7 @@
 
 namespace Questrade
 {
-	QAuth Authentication::getData()
+	QAuth Authentication::getAuth()
 	{
 		return m_authenticationData;
 	}
@@ -39,7 +39,9 @@ namespace Questrade
 		if (wResponse.compare(L"Bad Request") != 0 && !wResponse.empty())
 			m_isAuthenticated = true;
 		else
+		{
 			throw AuthenticationError();
+		}
 
 		nlohmann::json ans = nlohmann::json::parse(toString(wResponse));
 		m_authenticationData = ans.template get<Questrade::QAuth>();
@@ -48,7 +50,7 @@ namespace Questrade
 
 	const char* AuthenticationError::what() const throw()
 	{
-		return "The provided refresh token is incorrect";
+		return "The refresh token was refused. Please try again.";
 	}
 
 }

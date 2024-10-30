@@ -23,12 +23,5 @@ namespace Questrade
 		Authentication* m_auth;
 		WinHttp m_connection;
 	};
-
-	class RequestError : public std::exception
-	{
-	public:
-		RequestError() = default;
-		const char* what() const throw();
-	};
 }
 
