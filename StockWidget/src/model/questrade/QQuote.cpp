@@ -1,8 +1,8 @@
-#include "model/questrade/Quote.h"
+#include "model/questrade/QQuote.h"
 
-void Questrade::from_json(const nlohmann::json& j, Quote& q)
+void from_json(const nlohmann::json& j, QQuote& q)
 {
-	j.at("symbol").get_to(q.symbol);
+	j.at("symbol").get_to(q.m_symbol);
 	j.at("symbolId").get_to(q.symbolId);
 
 	if (!j.at("bidPrice").is_null())
@@ -43,7 +43,7 @@ void Questrade::from_json(const nlohmann::json& j, Quote& q)
 
 }
 
-void Questrade::from_json(const nlohmann::json& j, Quotes& q)
-{
-	j.at("quotes").get_to(q.quotes);
-}
+//void Questrade::from_json(const nlohmann::json& j, QQuotes& q)
+//{
+//	j.at("quotes").get_to(q.quotes);
+//}

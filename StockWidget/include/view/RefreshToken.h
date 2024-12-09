@@ -5,6 +5,6 @@
 #include "controller/ConfigHandler.h"
 
 
-
 INT_PTR CALLBACK WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam);
-inline Questrade::Authentication* auth;
+inline Authentication* auth;
+inline ConfigHandler* config = ConfigHandler::getInstance();

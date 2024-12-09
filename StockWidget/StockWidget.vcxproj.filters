@@ -72,7 +72,7 @@
     <ClInclude Include="include\controller\Authentication.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\model\questrade\Quote.h">
+    <ClInclude Include="include\model\questrade\QQuote.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\view\RefreshToken.h">
@@ -87,7 +87,7 @@
     <ClInclude Include="include\view\StockWidget.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\model\questrade\Symbol.h">
+    <ClInclude Include="include\model\questrade\QSymbol.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\view\Settings.h">
@@ -97,6 +97,36 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\model\StockListing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\Quote.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\Symbol.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\Auth.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\controller\twelvedata\TAuthentication.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\twelvedata\TAuth.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\twelvedata\TError.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\model\twelvedata\TQuote.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\controller\questrade\QRequest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\controller\twelvedata\TRequest.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\model\Quote.cpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -122,7 +152,7 @@
     <ClCompile Include="src\controller\ConfigHandler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\model\questrade\Quote.cpp">
+    <ClCompile Include="src\model\questrade\QQuote.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\view\RefreshToken.cpp">
@@ -137,10 +167,40 @@
     <ClCompile Include="src\view\StockWidget.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\model\questrade\Symbol.cpp">
+    <ClCompile Include="src\model\questrade\QSymbol.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\model\questrade\QAuth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\Auth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\controller\questrade\QAuthentication.h">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\controller\questrade\QAuthentication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\controller\twelvedata\TAuthentication.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\twelvedata\TAuth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\twelvedata\TError.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\twelvedata\TQuote.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\controller\questrade\QRequest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\model\Symbol.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="include\controller\twelvedata\TRequest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

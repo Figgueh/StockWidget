@@ -10,6 +10,10 @@
 #include "model/ApplicationSettings.h"
 #include "model/StockListing.h"
 
+
+
+
+
 #define MAX_LOADSTRING 100
 
 // Global Variables:
@@ -25,19 +29,21 @@ HWND hWnd;
 
 // Variables:
 inline ApplicationSettings settings;
-inline std::vector<int> watchlist;
+inline std::vector<std::string> watchlist;
 inline std::vector<StockListing> priceLabels;
-inline Questrade::Authentication* authentication;
-ConfigHandler configuration;
-Questrade::RequestHandler makeRequest;
+//inline Authentication* authentication;
+inline std::vector<Authentication*> authentications;
+inline ConfigHandler* configuration = ConfigHandler::getInstance();
+RequestHandler* makeRequest;
 
 // Functions
 inline void registerHotKeys();
 inline void authenticate();
 inline void loadUserSettings();
 inline void prepareWatchlist();
-void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes);
+void initializeWatchlist(HWND hWnd, StockWatch::Quotes quotes);
 
 inline void applyWatchlistUpdates();
 
 inline void applyColorEffect();
+

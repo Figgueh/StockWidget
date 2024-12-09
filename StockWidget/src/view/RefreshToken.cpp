@@ -1,5 +1,7 @@
 #include "view/RefreshToken.h"
 #include "utility/Toolbox.h"
+#include "controller/questrade/QAuthentication.h"
+#include "controller/twelvedata/TAuthentication.h"
 
 
 //
@@ -22,7 +24,7 @@ INT_PTR WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 	case  WM_INITDIALOG:
 	{
-		auth = Questrade::Authentication::getInstance();
+		auth = (Authentication*)lParam;
 	}
 	break;
 
@@ -40,13 +42,28 @@ INT_PTR WndRefreshProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 
 		case IDSAVE:
 			szText = new TCHAR[bufSize];
-			GetDlgItemText(hDlg, IDC_EDIT, szText, bufSize);
+
+			// Handle questrade
+			GetDlgItemText(hDlg, IDC_REFRESHTOKEN, szText, bufSize);
+			if(!toString(szText).empty())
+			{
+				config->updateRefreshToken(toString(szText));
+				auth = new QAuthentication();
+			}
+
+			// Handle questrade
+			GetDlgItemText(hDlg, IDC_APIKEY, szText, bufSize);
+			if(!toString(szText).empty())
+			{
+				config->updateSecretKey(toString(szText));
+				auth = new TAuthentication();
+			}
 
 			try {
-				auth->authenticate(szText);
+				auth->authenticate();
 				EndDialog(hDlg, LOWORD(wParam));
 			}
-			catch (Questrade::AuthenticationError& e) {
+			catch (AuthenticationError& e) {
 				std::string error = e.what();
 				MessageBox(NULL, toWString(error).c_str(), L"Invalid refresh token.", MB_ICONERROR | MB_OK);
 			}

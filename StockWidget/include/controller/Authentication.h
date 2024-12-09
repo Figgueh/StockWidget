@@ -3,36 +3,29 @@
 #include <exception>
 
 #include "utility/json.hpp"
-#include <model/questrade/QAuth.h>
+#include "model/Auth.h"
+#include "ConfigHandler.h"
 
-namespace Questrade
+class Authentication
 {
-	class Authentication
-	{
-	public:
-		Authentication(const Authentication& obj) = delete;
-		static Authentication* getInstance();
+public:
+	Authentication() = default;
 
-		void const authenticate(const std::wstring& refreshToken);
+	virtual const void authenticate() = 0;
 
-		QAuth getAuth();
-		static inline bool m_isAuthenticated = false;
-	private:
-		Authentication();
+	Auth getAuth();
+	static inline bool m_isAuthenticated = false;
 
-		inline static Authentication* m_instance;
-		QAuth m_authenticationData;
-	};
+protected:
+	ConfigHandler* m_configuraiton = ConfigHandler::getInstance();
+	Auth m_authenticationData;
+};
 
 
-	class AuthenticationError : public std::exception
-	{
-	public:
-		AuthenticationError() = default;
-		const char* what() const throw();
-	};
-}
-
-
-
+class AuthenticationError : public std::exception
+{
+public:
+	AuthenticationError() = default;
+	const char* what() const throw();
+};
 

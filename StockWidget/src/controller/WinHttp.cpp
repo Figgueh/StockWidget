@@ -103,6 +103,7 @@ std::wstring WinHttp::recieveResponse()
             }
         }
     } while (dwSize > 0);
+    delete pszOutBuffer;
 
     return ans;
 }

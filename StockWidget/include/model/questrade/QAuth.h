@@ -1,29 +1,25 @@
 #pragma once
 #include <string>
 #include "utility/json.hpp"
+#include "model/Auth.h"
 
-
-namespace Questrade
+/**
+* This class is a holder for the responce send back from questrade.
+*/
+class QAuth : public Auth
 {
-	class QAuth
-	{
-	public:
-		std::string getTokenType() const;
-		std::string getAccessToken() const;
-		std::string getRefreshToken() const;
-		std::string getApiServer() const;
+public:
+	std::string getTokenType() const;
+	std::string getAccessToken() const;
+	std::string getApiServer() const;
 
-		friend void to_json(nlohmann::json& j, const QAuth& p);
-		friend void from_json(const nlohmann::json& j, QAuth& p);
+	friend void to_json(nlohmann::json& j, const QAuth& p);
+	friend void from_json(const nlohmann::json& j, QAuth& p);
 
-	private:
-		std::string m_tokenType;
-		std::string m_accessToken;
-		int m_expiresIn = 0;
-		std::string m_refreshToken;
-		std::string m_apiServer;
+private:
+	std::string m_tokenType;
+	std::string m_accessToken;
+	int m_expiresIn = 0;
+	std::string m_apiServer;
 
-	};
-
-}
-
+};

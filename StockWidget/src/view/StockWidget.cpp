@@ -12,6 +12,16 @@
 
 #include "controller/StockUpdater.h"
 
+
+
+#include "controller/questrade/QAuthentication.h"
+#include "controller/twelvedata/TAuthentication.h"
+#include <controller/questrade/QRequest.h>
+#include <model/twelvedata/TAuth.h>
+#include <controller/twelvedata/TRequest.h>
+
+
+
 // Forward declarations of functions included in this code module:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -52,7 +62,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 		}
 	}
 
-	StockWatch::stopWatching();
+	//StockWatch::stopWatching();
 
 	return (int)msg.wParam;
 }
@@ -110,12 +120,59 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	ShowWindow(hWnd, nCmdShow);
 
 	registerHotKeys();
+
+	if (configuration->m_firstStart) {
+		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_REFRESHTOKEN), hWnd, WndRefreshProc, (LPARAM)nullptr);
+	}
+
+	if (!configuration->getRefreshToken().empty())
+		authentications.push_back(new QAuthentication());
+	if (!configuration->getSecretKey().empty())
+		authentications.push_back(new TAuthentication());
+
+	//configuration->writeConfig();
+
 	authenticate();
-	loadUserSettings();
-	prepareWatchlist();
+	//QRequest* ttt = new QRequest(new QAuth());
+
+	QAuthentication* q = static_cast<QAuthentication*>(authentications[0]);
+	if (q != NULL) {
+		QAuth qa = q->m_auth;
+		//Auth* a = static_cast<Auth*>(q->getAuth());
+
+		//QAuth* qa = dynamic_cast<QAuth*>(a);
+
+		
+		//QAuth* qa = static_cast<QAuth*>(q->getAuth());
+
+		//QRequest* questradeAPI = new QRequest(a);
+		QRequest questradeAPI(qa);
+
+		StockWatch::Quote test = questradeAPI.getQuote("10000");
+
+		//Questrade::QQuote* qq = static_cast<Questrade::QQuote*>(&test);
+
+
+		OutputDebugStringW(toWString(test.m_symbol).c_str());
+		OutputDebugStringW(std::to_wstring(test.m_price).c_str());
+	}
+
+	TAuthentication* t = static_cast<TAuthentication*>(authentications[1]);
+	if (t != NULL) {
+		TAuth* ta = t->m_auth;
+		TRequest TAPI(*ta);
+
+		StockWatch::Quote testingT = TAPI.getQuote("AAPL");
+		//OutputDebugStringW(toWString(testingT.m_symbol).c_str());
+		OutputDebugStringW(std::to_wstring(testingT.m_price).c_str());
+
+	}
+
+	//loadUserSettings();
+	//prepareWatchlist();
 
 	// Start the updater thread
-	StockWatch::updater = std::thread(StockWatch::startWatching, std::ref(hWnd));
+	//StockWatch::updater = std::thread(StockWatch::startWatching, std::ref(hWnd));
 
 	return TRUE;
 }
@@ -147,16 +204,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 		case HOTKEY_SETTINGS:
 		{
-			hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, WndSettingProc, (LPARAM)&configuration);
+			//hwndSettings = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SETTINGS), hWnd, WndSettingProc, (LPARAM)&configuration);
 		}
 		break;
 		case HOTKEY_STOCKS:
 		{
-			hwndStocks = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&configuration);
+			//hwndStocks = DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_SEARCH), hWnd, WndSearchProc, (LPARAM)&configuration);
 
-			if (hwndStocks == IDSAVE) {
-				applyWatchlistUpdates();
-			}
+			//if (hwndStocks == IDSAVE) {
+			//	applyWatchlistUpdates();
+			//}
 		}
 		break;
 		case HOTKEY_CLOSE:
@@ -173,28 +230,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	case WM_CTLCOLORSTATIC:
 	{
 		// Look for the price lables
-		std::vector<StockListing>::iterator it = std::find_if(priceLabels.begin(), priceLabels.end(), [&](const StockListing& listing) {return listing.price == (HWND)lParam; });
+		//std::vector<StockListing>::iterator it = std::find_if(priceLabels.begin(), priceLabels.end(), [&](const StockListing& listing) {return listing.price == (HWND)lParam; });
 		HDC hdcStatic = (HDC)wParam;
 		COLORREF textColour = RGB(255, 255, 255);
 
-		auto position = it - priceLabels.begin();
-		if (it != priceLabels.end()) {			// Colour for stock names
-			int length = GetWindowTextLength(priceLabels.at(position).price);
-			wchar_t* price = new wchar_t[length + 1];
-			GetWindowText(priceLabels.at(position).price, price, length + 1);
-			double priceD = wcstod(price, NULL);
+		//auto position = it - priceLabels.begin();
+		//if (it != priceLabels.end()) {			// Colour for stock names
+		//	int length = GetWindowTextLength(priceLabels.at(position).price);
+		//	wchar_t* price = new wchar_t[length + 1];
+		//	GetWindowText(priceLabels.at(position).price, price, length + 1);
+		//	double priceD = wcstod(price, NULL);
 
 
-			// If it is a gainer turn green
-			if (priceD > priceLabels.at(position).lastPrice)
-				textColour = RGB(0, 255, 0);
+		//	// If it is a gainer turn green
+		//	if (priceD > priceLabels.at(position).lastPrice)
+		//		textColour = RGB(0, 255, 0);
 
-			// If it is a looser turn red
-			if (priceD < priceLabels.at(position).lastPrice)
-				textColour = RGB(255, 0, 0);
+		//	// If it is a looser turn red
+		//	if (priceD < priceLabels.at(position).lastPrice)
+		//		textColour = RGB(255, 0, 0);
 
-			// No change keep it normal
-		}
+		//	// No change keep it normal
+		//}
 
 		SetTextColor(hdcStatic, textColour);
 
@@ -226,8 +283,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			GetWindowPlacement(hWnd, &placement);
 
 			// Save it
-			configuration.updatePosition(placement);
+			configuration->updatePosition(placement);
 		}
+		delete(configuration);
+		delete authentications[0];
+		delete authentications[1];
 		PostQuitMessage(0);
 	}
 	break;
@@ -274,13 +334,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-void initializeWatchlist(HWND hWnd, Questrade::Quotes quotes)
+void initializeWatchlist(HWND hWnd, StockWatch::Quotes quotes)
 {
-	for (Questrade::Quote& quote : quotes.quotes) {
+	for (StockWatch::Quote& quote : quotes.m_quotes) {
 		// Create two lables, one with the ticker and other with the price
-		HWND ticker = CreateWindowEx(0, L"static", toWString(quote.symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
-		HWND price = CreateWindowEx(0, L"static", std::to_wstring(quote.askPrice).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
-		priceLabels.emplace_back(StockListing{ ticker, price, quote.askPrice });
+		HWND ticker = CreateWindowEx(0, L"static", toWString(quote.m_symbol).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 0, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
+		HWND price = CreateWindowEx(0, L"static", std::to_wstring(quote.m_price).c_str(), WS_VISIBLE | WS_CHILD | SS_CENTER, 100, priceLabels.size() * 20, 100, 20, hWnd, nullptr, nullptr, nullptr);
+		priceLabels.emplace_back(StockListing{ ticker, price, quote.m_price });
 	}
 	UpdateWindow(hWnd);
 }
@@ -295,45 +355,60 @@ inline void registerHotKeys()
 
 inline void authenticate()
 {
-	std::string refreshToken;
+	//std::string refreshToken;
 
-	authentication = Questrade::Authentication::getInstance();
+	//authentication = Authentication::getInstance();
 
-	try {
-		authentication->authenticate(configuration.getRefreshToken());
-		refreshToken = authentication->getAuth().getRefreshToken();
+	for (Authentication* authentication : authentications) {
+
+		try {
+			authentication->authenticate();
+
+		}
+		catch (AuthenticationError& e) {
+			std::string error = std::string(e.what());
+			MessageBox(NULL, toWString(error).c_str(), L"Authentication error", MB_ICONERROR | MB_OK);
+			DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_REFRESHTOKEN), hWnd, WndRefreshProc, (LPARAM)nullptr);
+		}
 
 	}
-	catch (Questrade::AuthenticationError& e) {
-		std::string error = std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"Authentication error", MB_ICONERROR | MB_OK);
-		DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_REFRESHTOKEN), hWnd, WndRefreshProc, (LPARAM)nullptr);
-		refreshToken = authentication->getAuth().getRefreshToken();
 
-	}
-	catch (RequestError& e) {
-		std::string error = std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"Bad request error", MB_ICONERROR | MB_OK);
-	}
-	catch (nlohmann::json::exception& e) {
-		refreshToken = authentication->getAuth().getRefreshToken();
 
-		std::string error = "ERROR:" + std::string(e.what());
-	}
+	//try {
+	//	authentication->authenticate(configuration.getRefreshToken());
+	//	refreshToken = authentication->getAuth().getKey();
 
-	configuration.updateRefreshToken(refreshToken);
+	//}
+	//catch (AuthenticationError& e) {
+	//	std::string error = std::string(e.what());
+	//	MessageBox(NULL, toWString(error).c_str(), L"Authentication error", MB_ICONERROR | MB_OK);
+	//	DialogBoxParam(hInst, MAKEINTRESOURCE(IDD_REFRESHTOKEN), hWnd, WndRefreshProc, (LPARAM)nullptr);
+	//	refreshToken = authentication->getAuth().getKey();
+
+	//}
+	//catch (RequestError& e) {
+	//	std::string error = std::string(e.what());
+	//	MessageBox(NULL, toWString(error).c_str(), L"Bad request error", MB_ICONERROR | MB_OK);
+	//}
+	//catch (nlohmann::json::exception& e) {
+	//	refreshToken = authentication->getAuth().getKey();
+
+	//	std::string error = "ERROR:" + std::string(e.what());
+	//}
+
+	//configuration.updateRefreshToken(refreshToken);
 
 }
 
-inline void loadUserSettings()
-{
-	// Get the settings of the user
-	settings = configuration.getSettings();
-
-	// Get the list of ids thats in the watchlist
-	watchlist = configuration.getTickers();
-}
-
+//inline void loadUserSettings()
+//{
+//	// Get the settings of the user
+//	settings = configuration.getSettings();
+//
+//	// Get the list of ids thats in the watchlist
+//	watchlist = configuration.getTickers();
+//}
+//
 inline void prepareWatchlist()
 {
 
@@ -345,7 +420,7 @@ inline void prepareWatchlist()
 
 		// If the save was sucessful update the watchlist.
 		if (result == IDSAVE)
-			watchlist = configuration.getTickers();
+			watchlist = configuration->getTickers();
 	}
 
 	// Update the length of the window
@@ -353,7 +428,7 @@ inline void prepareWatchlist()
 
 	// Load the previously saved location of the window
 	if (settings.rememberLocation) {
-		WINDOWPLACEMENT placement = configuration.getPosition();
+		WINDOWPLACEMENT placement = configuration->getPosition();
 		SetWindowPlacement(hWnd, &placement);
 	}
 
@@ -361,29 +436,29 @@ inline void prepareWatchlist()
 	UpdateWindow(hWnd);
 
 	if (priceLabels.empty())
-		initializeWatchlist(std::ref(hWnd), makeRequest.getQuotes(watchlist));
+		initializeWatchlist(std::ref(hWnd), makeRequest->getQuotes(watchlist));
 
 }
-
-inline void applyWatchlistUpdates()
-{
-	StockWatch::stopWatching();
-	OutputDebugStringW(L"Updater closed\n");
-
-	// Remove old labels
-	for (StockListing& listings : priceLabels) {
-		DestroyWindow(listings.ticker);
-		DestroyWindow(listings.price);
-	}
-	priceLabels.clear();
-
-	// Reinitialize
-	StockWatch::running = true;
-	watchlist = configuration.getTickers();
-	::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
-	initializeWatchlist(hWnd, makeRequest.getQuotes(watchlist));
-	StockWatch::updater = std::thread(StockWatch::startWatching, std::ref(hWnd));
-
-	UpdateWindow(hWnd);
-
-}
+//
+//inline void applyWatchlistUpdates()
+//{
+//	StockWatch::stopWatching();
+//	OutputDebugStringW(L"Updater closed\n");
+//
+//	// Remove old labels
+//	for (StockListing& listings : priceLabels) {
+//		DestroyWindow(listings.ticker);
+//		DestroyWindow(listings.price);
+//	}
+//	priceLabels.clear();
+//
+//	// Reinitialize
+//	StockWatch::running = true;
+//	watchlist = configuration.getTickers();
+//	::SetWindowPos(hWnd, HWND_TOP, 0, 0, 215, watchlist.size() * 20, SWP_FRAMECHANGED | SWP_NOZORDER | SWP_SHOWWINDOW);
+//	initializeWatchlist(hWnd, makeRequest.getQuotes(watchlist));
+//	StockWatch::updater = std::thread(StockWatch::startWatching, std::ref(hWnd));
+//
+//	UpdateWindow(hWnd);
+//
+//}

@@ -1,13 +1,12 @@
 #pragma once
-#include <string>
-#include <vector>
 
 #include "utility/json.hpp"
+#include "model/Quote.h"
 
-namespace Questrade
-{
-	struct Quote {
-		std::string symbol;
+class QQuote : public StockWatch::Quote {
+		QQuote() = default;
+
+	public:
 		int symbolId;
 		double bidPrice;
 		int bidSize;
@@ -22,17 +21,17 @@ namespace Questrade
 		double lowPrice;
 		bool isHalted;
 
-		Quote() = default;
 	};
 
-	void from_json(const nlohmann::json& j, Quote& q);
+	inline void from_json(const nlohmann::json& j, QQuote& q);
 
-	struct Quotes {
-		std::vector<Quote> quotes;
+	class QQuotes {
+	public:
+		std::vector<QQuote> quotes;
 
-		Quotes() = default;
+		QQuotes() = default;
 	};
 
-	void from_json(const nlohmann::json& j, Quotes& q);
-}
+	void from_json(const nlohmann::json& j, QQuotes& q);
+
 

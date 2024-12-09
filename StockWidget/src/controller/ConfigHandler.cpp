@@ -10,6 +10,16 @@ bool exists() {
 	return (stat(ConfigHandler::FILENAME.c_str(), &buffer) == 0);
 }
 
+
+ConfigHandler* ConfigHandler::getInstance()
+{
+	if (m_configurationInstance == nullptr) {
+		m_configurationInstance = new ConfigHandler();
+	}
+
+	return m_configurationInstance;
+}
+
 /**
  Prepares the configuration file if it doesn't already exist.
  If it exists, it reads the configuration file.
@@ -17,19 +27,24 @@ bool exists() {
 ConfigHandler::ConfigHandler()
 {
 	if (!exists()) {
-		m_toWriteBuffer = { 
+		m_toWriteBuffer = {
 			L"RefreshToken:",
+			L"",
+			L"SecretKey:",
 			L"",
 			L"Settings:",
 			L"0,0",
-			L"Position:", 
-			L"0,0,215,20", 
+			L"Position:",
+			L"0,0,215,20",
 			L"Watchlist:"
 		};
-	} else {
+		m_firstStart = TRUE;
+	}
+	else {
 		m_toWriteBuffer = readConfig();
 	}
 }
+
 //writes the data stored in toWriteBuffer to the configuration file.
 ConfigHandler::~ConfigHandler()
 {
@@ -57,18 +72,33 @@ int ConfigHandler::findLineNumber(std::wstring line)
  * Reads the toWriteBuffer line for the refresh token.
  * @returns the refresh token stored in the toWriteBuffer variable
  */
-std::wstring ConfigHandler::getRefreshToken() 
+std::wstring ConfigHandler::getRefreshToken()
 {
 	return m_toWriteBuffer[findLineNumber(L"RefreshToken:")];
 }
+std::wstring ConfigHandler::getSecretKey()
+{
+	return m_toWriteBuffer[findLineNumber(L"SecretKey:")];
+}
+
 
 /**
  * Updates the toWriteBuffer refresh token line.
  * @param the new refresh token.
  */
-void ConfigHandler::updateRefreshToken(std::string token) 
+void ConfigHandler::updateRefreshToken(std::string token)
 {
-	m_toWriteBuffer[findLineNumber(L"RefreshToken:")] = toWString(token) + L"";
+	m_toWriteBuffer[findLineNumber(L"RefreshToken:")] = toWString(token);
+}
+
+/**
+ * Updates the toWriteBuffer secret key line.
+ * @param the new secret key.
+ */
+
+void ConfigHandler::updateSecretKey(std::string token)
+{
+	m_toWriteBuffer[findLineNumber(L"SecretKey:")] = toWString(token);
 }
 
 /**
@@ -93,13 +123,13 @@ void ConfigHandler::updateSettings(ApplicationSettings settings)
 
 /**
  * Reads the toWriteBuffer to fetch the position coordinates.
- * @returns the saved position coordinates 
+ * @returns the saved position coordinates
  */
 WINDOWPLACEMENT ConfigHandler::getPosition()
 {
 	std::wstring data = m_toWriteBuffer[findLineNumber(L"Position:")];
 	std::vector<int> coords = split(data, ",");
-	
+
 	WINDOWPLACEMENT windowPos;
 	windowPos.length = sizeof(windowPos);
 	windowPos.flags = 0;
@@ -121,10 +151,10 @@ void ConfigHandler::updatePosition(WINDOWPLACEMENT& pos)
 {
 	RECT window = pos.rcNormalPosition;
 
-	m_toWriteBuffer[findLineNumber(L"Position:")] = 
-		std::to_wstring(window.left) + L"," + 
-		std::to_wstring(window.top) + L","  +
-		std::to_wstring(window.right) + L"," + 
+	m_toWriteBuffer[findLineNumber(L"Position:")] =
+		std::to_wstring(window.left) + L"," +
+		std::to_wstring(window.top) + L"," +
+		std::to_wstring(window.right) + L"," +
 		std::to_wstring(window.bottom);
 }
 
@@ -132,11 +162,11 @@ void ConfigHandler::updatePosition(WINDOWPLACEMENT& pos)
  * Reads the toWriteBuffer to fetch the tickers.
  * @returns vector of all the tickers ID for the watch list.
  */
-std::vector<int> ConfigHandler::getTickers()
+std::vector<std::string> ConfigHandler::getTickers()
 {
-	std::vector<int> watchlist;
-	for (int i = findLineNumber(L"Watchlist:"); i < m_toWriteBuffer.size(); i++){
-		watchlist.emplace_back(stoi(m_toWriteBuffer[i]));
+	std::vector<std::string> watchlist;
+	for (int i = findLineNumber(L"Watchlist:"); i < m_toWriteBuffer.size(); i++) {
+		watchlist.emplace_back(toString(m_toWriteBuffer[i]));
 	}
 
 	return watchlist;
@@ -146,7 +176,7 @@ std::vector<int> ConfigHandler::getTickers()
  * Updates the toWriteBuffer tickers.
  * @param the tickers that will be stored in the toWriteBuffer
  */
-void ConfigHandler::updateTickers(std::vector<int> tickerIDs)
+void ConfigHandler::updateTickers(std::vector<std::string> tickerIDs)
 {
 	int dataLine = findLineNumber(L"Watchlist:");
 
@@ -155,8 +185,8 @@ void ConfigHandler::updateTickers(std::vector<int> tickerIDs)
 		m_toWriteBuffer.erase(m_toWriteBuffer.begin() + dataLine, m_toWriteBuffer.end());
 
 	// Add all the tickers
-	for (int ticker : tickerIDs) {
-		m_toWriteBuffer.emplace_back(std::to_wstring(ticker));
+	for (std::string ticker : tickerIDs) {
+		m_toWriteBuffer.emplace_back(toWString(ticker));
 	}
 }
 

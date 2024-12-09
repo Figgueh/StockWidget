@@ -137,39 +137,59 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\controller\questrade\QRequest.h" />
     <ClInclude Include="include\controller\StockUpdater.h" />
     <ClInclude Include="include\controller\ConfigHandler.h" />
     <ClInclude Include="include\api\framework.h" />
+    <ClInclude Include="include\controller\twelvedata\TAuthentication.h" />
+    <ClInclude Include="include\controller\twelvedata\TRequest.h" />
+    <ClInclude Include="include\model\Auth.h" />
     <ClInclude Include="include\model\questrade\QAuth.h" />
+    <ClInclude Include="include\model\Quote.h" />
     <ClInclude Include="include\model\StockListing.h" />
+    <ClInclude Include="include\model\Symbol.h" />
+    <ClInclude Include="include\model\twelvedata\TAuth.h" />
+    <ClInclude Include="include\model\twelvedata\TError.h" />
+    <ClInclude Include="include\model\twelvedata\TQuote.h" />
     <ClInclude Include="include\utility\json.hpp" />
     <ClInclude Include="include\controller\Authentication.h" />
-    <ClInclude Include="include\model\questrade\Quote.h" />
+    <ClInclude Include="include\model\questrade\QQuote.h" />
     <ClInclude Include="include\view\RefreshToken.h" />
     <ClInclude Include="include\utility\RequestError.h" />
     <ClInclude Include="include\controller\RequestHandler.h" />
     <ClInclude Include="include\view\Search.h" />
     <ClInclude Include="include\view\Settings.h" />
     <ClInclude Include="include\view\StockWidget.h" />
-    <ClInclude Include="include\model\questrade\Symbol.h" />
+    <ClInclude Include="include\model\questrade\QSymbol.h" />
     <ClInclude Include="include\api\targetver.h" />
     <ClInclude Include="include\utility\Toolbox.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="include\controller\WinHttp.h" />
+    <ClInclude Include="src\model\Quote.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="include\controller\twelvedata\TRequest.cpp" />
+    <ClCompile Include="src\model\Symbol.cpp" />
+    <ClCompile Include="src\controller\questrade\QAuthentication.cpp" />
+    <ClCompile Include="include\controller\questrade\QAuthentication.h" />
+    <ClCompile Include="src\controller\questrade\QRequest.cpp" />
+    <ClCompile Include="src\controller\twelvedata\TAuthentication.cpp" />
+    <ClCompile Include="src\model\Auth.cpp" />
     <ClCompile Include="src\model\questrade\QAuth.cpp" />
+    <ClCompile Include="src\model\twelvedata\TAuth.cpp" />
+    <ClCompile Include="src\model\twelvedata\TError.cpp" />
+    <ClCompile Include="src\model\twelvedata\TQuote.cpp" />
     <ClCompile Include="src\view\Settings.cpp" />
     <ClCompile Include="include\model\ApplicationSettings.h" />
     <ClCompile Include="src\controller\Authentication.cpp" />
     <ClCompile Include="src\controller\ConfigHandler.cpp" />
-    <ClCompile Include="src\model\questrade\Quote.cpp" />
+    <ClCompile Include="src\model\questrade\QQuote.cpp" />
     <ClCompile Include="src\view\RefreshToken.cpp" />
     <ClCompile Include="src\utility\RequestError.cpp" />
     <ClCompile Include="src\controller\RequestHandler.cpp" />
     <ClCompile Include="src\view\Search.cpp" />
     <ClCompile Include="src\view\StockWidget.cpp" />
-    <ClCompile Include="src\model\questrade\Symbol.cpp" />
+    <ClCompile Include="src\model\questrade\QSymbol.cpp" />
     <ClCompile Include="src\utility\Toolbox.cpp" />
     <ClCompile Include="src\controller\WinHttp.cpp" />
   </ItemGroup>

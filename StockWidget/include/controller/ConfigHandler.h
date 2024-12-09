@@ -9,12 +9,20 @@
 class ConfigHandler
 {
 public:
-	inline static const std::string FILENAME = "config.txt";
+	ConfigHandler(ConfigHandler& other) = delete;
+	void operator=(const ConfigHandler& other) = delete;
 
-	ConfigHandler();
+	static ConfigHandler* getInstance();
+
+	inline static const std::string FILENAME = "config.txt";
+	bool m_firstStart = FALSE;
+
 	~ConfigHandler();
+
 	std::wstring getRefreshToken();
+	std::wstring getSecretKey();
 	void updateRefreshToken(std::string token);
+	void updateSecretKey(std::string token);
 
 	ApplicationSettings getSettings();
 	void updateSettings(ApplicationSettings settings);
@@ -22,14 +30,19 @@ public:
 	WINDOWPLACEMENT getPosition();
 	void updatePosition(WINDOWPLACEMENT& pos);
 
-	std::vector<int> getTickers();
-	void updateTickers(std::vector<int> tickerIDs);
+	std::vector<std::string> getTickers();
+	void updateTickers(std::vector<std::string> tickerIDs);
 
-private:
+	void writeConfig();
+
+
+protected:
+	ConfigHandler();
+
+	inline static ConfigHandler* m_configurationInstance;
 	std::vector<std::wstring> m_toWriteBuffer;
 
 	int findLineNumber(std::wstring line);
 	std::vector<std::wstring> readConfig();
-	void writeConfig();
 };
 

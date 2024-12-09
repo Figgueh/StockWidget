@@ -1,107 +1,50 @@
-#include "controller/RequestHandler.h"
-#include "model/questrade/Quote.h"
-#include "utility/RequestError.h"
-#include "utility/Toolbox.h"
+#include "controller/requesthandler.h"
+#include "model/quote.h"
+#include "utility/requesterror.h"
+#include "utility/toolbox.h"
+#include <controller/questrade/QRequest.h>
 
-Questrade::RequestHandler::RequestHandler()
+//RequestHandler::RequestHandler(Authentication* auth)
+//{
+//	this->m_auth = auth;
+//}
+
+//std::wstring alphavantage::requesthandler::handlerequest(std::wstring path, std::map<std::string, std::string> headers)
+//{
+//	m_connection.open();
+//	m_connection.connect(winhttp::striphost(std::string("https://www.alphavantage.co")).c_str());
+//	m_connection.requesthandler(l"get", path.c_str());
+//	m_connection.addheaders(headers);
+//	m_connection.sendrequest();
+//	return m_connection.recieveresponse();
+//}
+//
+//std::wstring alphavantage::requesthandler::getquotea(int stockid)
+//{
+//	m_path = towstring("query?function=time_series_daily&symbol=ibm&apikey=" + m_key);
+//
+//	std::wstring res = handlerequest(m_path, m_headers);
+//	if (res.compare(l"bad request") == 0)
+//		throw requesterror();
+//
+//	return res;
+//}
+//
+//inline Quote* RequestHandler::getQuote(int stockId) const
+//{
+//	return nullptr;
+//}
+
+// Quote RequestHandler::getQuote(int stockId)
+//{
+//	return Quote();
+//}
+
+void RequestHandler::handleWatchlist(std::vector<std::string> watchlist)
 {
-	this->m_auth = Questrade::Authentication::getInstance();
-}
-
-std::wstring Questrade::RequestHandler::handleRequest(std::wstring path, std::map<std::string, std::string> headers)
-{
-	m_connection.open();
-	m_connection.connect(WinHttp::stripHost(m_auth->getAuth().getApiServer()).c_str());
-	m_connection.requestHandler(L"GET", path.c_str());
-	m_connection.addHeaders(headers);
-	m_connection.sendRequest();
-	return m_connection.recieveResponse();
-}
-
-Questrade::Quotes Questrade::RequestHandler::getQuote(int stockId)
-{		
-	m_path = toWString("/v1/markets/quotes/" + std::to_string(stockId));
-	
-	m_headers.emplace("Host", m_auth->getAuth().getApiServer());
-	m_headers.emplace("Authorization", m_auth->getAuth().getTokenType() + " " + m_auth->getAuth().getAccessToken());
-
-	try {
-		std::wstring res = handleRequest(m_path, m_headers);
-
-		if (res.compare(L"Bad Request") == 0)
-			throw RequestError();
-
-		nlohmann::json result = nlohmann::json::parse(toString(res));
-		return result.template get<Questrade::Quotes>();
-
-	}
-	catch (nlohmann::json::exception& e) {
-		std::string error = "ERROR:" + std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
-	}
-}
-
-Questrade::Quotes Questrade::RequestHandler::getQuotes(std::vector<int> stockIds)
-{
-	m_path = toWString("/v1/markets/quotes/?ids=");
-
-	for (int id : stockIds)
+	for (std::string line : watchlist)
 	{
-		m_path.append(std::to_wstring(id) + L",");
+		if (line[0] == 'Q')
+			StockWatch::Quote q = QRequest::getQuote(line);
 	}
-
-	m_path.erase(m_path.end() - 1, m_path.end());
-
-	m_headers.emplace("Host", m_auth->getAuth().getApiServer());
-	m_headers.emplace("Authorization", m_auth->getAuth().getTokenType() + " " + m_auth->getAuth().getAccessToken());
-
-	try {
-		std::wstring res = handleRequest(m_path, m_headers);
-
-		if (res.compare(L"Bad Request") == 0)
-			throw RequestError();
-
-		nlohmann::json result = nlohmann::json::parse(toString(res));
-		return result.template get<Questrade::Quotes>();
-
-	}
-	catch (nlohmann::json::exception& e) {
-		std::string error = "ERROR:" + std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
-	}
-}
-
-Questrade::Symbols Questrade::RequestHandler::searchTicker(std::string ticker)
-{
-	m_path = toWString("/v1/symbols/search?prefix=" + ticker);
-
-	m_headers.emplace("Host", m_auth->getAuth().getApiServer());
-	m_headers.emplace("Authorization", m_auth->getAuth().getTokenType() + " " + m_auth->getAuth().getAccessToken());
-
-	try {
-		std::wstring res = handleRequest(m_path, m_headers);
-
-		if (res.compare(L"Bad Request") == 0)
-			throw RequestError();
-
-		nlohmann::json result = nlohmann::json::parse(toString(res));
-		return result.template get<Questrade::Symbols>();
-
-	}
-	catch (nlohmann::json::exception& e) {
-		std::string error = "ERROR:" + std::string(e.what());
-		MessageBox(NULL, toWString(error).c_str(), L"JSON parse error", MB_ICONERROR | MB_OK);
-	}
-}
-
-Questrade::Symbol Questrade::RequestHandler::findStockSymbolWithQuote(const Questrade::Quote& quote, const int& id)
-{
-	Questrade::Symbols possibleTickers = searchTicker(quote.symbol);
-
-	for (Questrade::Symbol currentTicker : possibleTickers.symbols) {
-		if (currentTicker.symbolId == id)
-			return currentTicker;
-	}
-
-	return {};
 }

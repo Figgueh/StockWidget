@@ -8,7 +8,7 @@ LRESULT WndSettingProc(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 	case  WM_INITDIALOG:
 	{
 		// Get the configuration handler variable from that main window 
-		configurationHandler = (ConfigHandler*)lParam;
+		//configurationHandler = (ConfigHandler*)lParam;
 
 		updateCheckboxState(hDlg);
 	}
